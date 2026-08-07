@@ -82,10 +82,10 @@ def main(page: ft.Page):
                     begin=ft.alignment.top_left, end=ft.alignment.bottom_right,
                     colors=["#111621", "#090C13"]
                 ),
-                border=ft.border.all(1, ft.Colors.with_opacity(0.4, glow_color)),
+                border=ft.border.all(1, ft.colors.with_opacity(0.4, glow_color)),
                 shadow=ft.BoxShadow(
                     spread_radius=1, blur_radius=10, 
-                    color=ft.Colors.with_opacity(0.15, glow_color),
+                    color=ft.colors.with_opacity(0.15, glow_color),
                     offset=ft.Offset(0, 4)
                 )
             )
@@ -1361,7 +1361,6 @@ def main(page: ft.Page):
         except: pass
 
     except Exception as e:
-        # SE DER QUALQUER ERRO, MOSTRA O ERRO EXATO NA TELA
         erro_completo = traceback.format_exc()
         page.add(
             ft.Text("🚨 ERRO DETECTADO:", size=18, color="red", weight="bold"),
