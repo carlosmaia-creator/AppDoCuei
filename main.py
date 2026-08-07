@@ -505,6 +505,7 @@ def main(page: ft.Page):
                         conn.commit()
                         conn.close()
                         carregar_gaps()
+                        carregar_resumo_dia()
 
                     lista_gaps_ui.controls.append(
                         card_premium(
@@ -549,6 +550,7 @@ def main(page: ft.Page):
                 gap_horario.value = ""
                 gap_atividade.value = ""
                 carregar_gaps()
+                carregar_resumo_dia()
 
         view_gaps = ft.Container(
             content=ft.Column([
@@ -584,6 +586,7 @@ def main(page: ft.Page):
                         conn.close()
                         carregar_excecoes()
                         carregar_rotina_do_dia()
+                        carregar_resumo_dia()
 
                     cor_borda = "#F59E0B" if "Atraso" in str(t_exc) else "#EF4444"
 
@@ -632,6 +635,7 @@ def main(page: ft.Page):
                 exc_horario_real.value = ""
                 carregar_excecoes()
                 carregar_rotina_do_dia()
+                carregar_resumo_dia()
 
         view_excecoes = ft.Container(
             content=ft.Column([
@@ -671,6 +675,7 @@ def main(page: ft.Page):
                 c.execute("INSERT OR REPLACE INTO agua_diaria (data, copos) VALUES (?, ?)", (data_formatada, contador_agua[0]))
                 conn.commit()
                 conn.close()
+                carregar_resumo_dia()
             except: pass
 
         def atualizar_texto_agua():
@@ -746,6 +751,7 @@ def main(page: ft.Page):
                         conn.commit()
                         conn.close()
                         carregar_refeicoes()
+                        carregar_resumo_dia()
 
                     lista_refeicoes_ui.controls.append(
                         card_premium(
@@ -776,6 +782,7 @@ def main(page: ft.Page):
                 foto_path[0] = ""
                 add_xp(5)
                 carregar_refeicoes()
+                carregar_resumo_dia()
 
         view_nutricao = ft.Container(
             content=ft.Column([
@@ -840,6 +847,7 @@ def main(page: ft.Page):
                         conn.commit()
                         conn.close()
                         atualizar_financeiro()
+                        carregar_resumo_dia()
 
                     lista_compras_ui.controls.append(
                         card_premium(
@@ -866,6 +874,7 @@ def main(page: ft.Page):
                 conn.commit()
                 conn.close()
                 atualizar_financeiro()
+                carregar_resumo_dia()
 
         dd_tipo_transacao = ft.Dropdown(
             label="Tipo de Lançamento", border_color="#1F293D", color="#FFFFFF", label_style=ft.TextStyle(color="#9CA3AF"),
@@ -907,6 +916,7 @@ def main(page: ft.Page):
                 fin_desc.value = ""
                 add_xp(5)
                 atualizar_financeiro()
+                carregar_resumo_dia()
 
         view_financas = ft.Container(
             content=ft.Column([
@@ -959,6 +969,7 @@ def main(page: ft.Page):
                         conn.commit()
                         conn.close()
                         carregar_diario()
+                        carregar_resumo_dia()
 
                     lista_diario_ui.controls.append(
                         card_premium(
@@ -989,6 +1000,7 @@ def main(page: ft.Page):
                 dia_licao.value = ""
                 dia_desabafo.value = ""
                 carregar_diario()
+                carregar_resumo_dia()
 
         view_diario = ft.Container(
             content=ft.Column([
@@ -1007,7 +1019,7 @@ def main(page: ft.Page):
         txt_nome_treino = ft.TextField(label="Nome do Treino (Ex: Peito/Tríceps)", border_color="#1F293D", color="#FFFFFF", label_style=ft.TextStyle(color="#9CA3AF"))
         txt_lista_exercicios = ft.TextField(label="Exercícios (Separados por vírgula)", hint_text="Ex: Supino Reto, Supino Inclinado", multiline=True, border_color="#1F293D", color="#FFFFFF", label_style=ft.TextStyle(color="#9CA3AF"))
         
-        dd_treino_ativo = ft.Dropdown(label="Selecione o Treino", border_color="#1F293D", color="#FFFFFF", label_style=ft.TextStyle(color="#9CA3AF"), expand=True)
+        dd_treino_ativo = ft.Dropdown(label="Selecione o Treino", border_color="#1F293D", color="#FFFFFF", label_style=ft.TextStyle(color="#9CA3AF"))
         painel_overview_treino = ft.Column(spacing=8)
         painel_execucao_treino = ft.Column(spacing=10)
         
@@ -1015,49 +1027,54 @@ def main(page: ft.Page):
         inputs_cargas = {}
 
         def atualizar_overview_treino(e):
-            painel_overview_treino.controls.clear()
-            painel_execucao_treino.controls.clear()
-            if not dd_treino_ativo.value: 
-                page.update()
-                return
+            try:
+                painel_overview_treino.controls.clear()
+                painel_execucao_treino.controls.clear()
+                if not dd_treino_ativo.value: 
+                    page.update()
+                    return
 
-            conn = sqlite3.connect(DB_PATH)
-            c = conn.cursor()
-            c.execute("SELECT nome_treino, exercicios FROM treinos_master WHERE id = ?", (dd_treino_ativo.value,))
-            row = c.fetchone()
-            conn.close()
+                conn = sqlite3.connect(DB_PATH)
+                c = conn.cursor()
+                c.execute("SELECT nome_treino, exercicios FROM treinos_master WHERE id = ?", (int(dd_treino_ativo.value),))
+                row = c.fetchone()
+                conn.close()
 
-            if row:
-                nome_t, ex_str = row
-                exercicios = [ex.strip() for ex in ex_str.split(",") if ex.strip()]
-                lista_ex_fmt = "\n".join([f"  • {ex}" for ex in exercicios])
-                
-                def deletar_treino_master_btn(ev):
-                    t_id = dd_treino_ativo.value
-                    if t_id:
-                        cn = sqlite3.connect(DB_PATH)
-                        cur = cn.cursor()
-                        cur.execute("DELETE FROM treinos_master WHERE id = ?", (t_id,))
-                        cn.commit()
-                        cn.close()
-                        dd_treino_ativo.value = None
-                        painel_overview_treino.controls.clear()
-                        carregar_treinos_master()
-                        page.update()
+                if row:
+                    nome_t, ex_str = row
+                    exercicios = [ex.strip() for ex in ex_str.split(",") if ex.strip()]
+                    lista_ex_fmt = "\n".join([f"  • {ex}" for ex in exercicios])
+                    
+                    def deletar_treino_master_btn(ev):
+                        try:
+                            t_id = dd_treino_ativo.value
+                            if t_id:
+                                cn = sqlite3.connect(DB_PATH)
+                                cur = cn.cursor()
+                                cur.execute("DELETE FROM treinos_master WHERE id = ?", (int(t_id),))
+                                cn.commit()
+                                cn.close()
+                                dd_treino_ativo.value = None
+                                painel_overview_treino.controls.clear()
+                                carregar_treinos_master()
+                                page.update()
+                        except: pass
 
-                painel_overview_treino.controls.append(
-                    card_premium(
-                        ft.Column([
-                            ft.Row([
-                                ft.Text(f"📋 PRÉVIA DA FICHA: {nome_t.upper()}", size=12, weight=ft.FontWeight.BOLD, color="#FF0055"),
-                                ft.IconButton(icon=ft.icons.DELETE, icon_color="#EF4444", tooltip="Apagar Ficha Master", on_click=deletar_treino_master_btn)
-                            ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-                            ft.Text(f"Exercícios inclusos nesta sessão:\n{lista_ex_fmt}", size=11, color="#FFFFFF"),
-                            ft.ElevatedButton("▶️ INICIAR TREINO AGORA", bgcolor="#10B981", color="#000000", height=45, on_click=iniciar_sessao_treino)
-                        ]), glow_color="#FF0055"
+                    painel_overview_treino.controls.append(
+                        card_premium(
+                            ft.Column([
+                                ft.Row([
+                                    ft.Text(f"📋 PRÉVIA DA FICHA: {nome_t.upper()}", size=12, weight=ft.FontWeight.BOLD, color="#FF0055"),
+                                    ft.IconButton(icon=ft.icons.DELETE, icon_color="#EF4444", tooltip="Apagar Ficha Master", on_click=deletar_treino_master_btn)
+                                ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+                                ft.Text(f"Exercícios inclusos nesta sessão:\n{lista_ex_fmt}", size=11, color="#FFFFFF"),
+                                ft.ElevatedButton("▶️ INICIAR TREINO AGORA", bgcolor="#10B981", color="#000000", height=45, on_click=iniciar_sessao_treino)
+                            ]), glow_color="#FF0055"
+                        )
                     )
-                )
-            page.update()
+                page.update()
+            except Exception as ex:
+                print(f"Erro em atualizar_overview_treino: {ex}")
 
         dd_treino_ativo.on_change = atualizar_overview_treino
 
@@ -1067,11 +1084,13 @@ def main(page: ft.Page):
                 conn = sqlite3.connect(DB_PATH)
                 c = conn.cursor()
                 c.execute("SELECT id, nome_treino FROM treinos_master")
-                for id_t, nm in c.fetchall():
+                rows = c.fetchall()
+                for id_t, nm in rows:
                     dd_treino_ativo.options.append(ft.dropdown.Option(key=str(id_t), text=nm))
                 conn.close()
                 page.update()
-            except: pass
+            except Exception as ex:
+                print(f"Erro em carregar_treinos_master: {ex}")
 
         def salvar_treino_master(e):
             if txt_nome_treino.value and txt_lista_exercicios.value:
@@ -1085,54 +1104,58 @@ def main(page: ft.Page):
                 carregar_treinos_master()
 
         def iniciar_sessao_treino(e):
-            if not dd_treino_ativo.value: return
-            hora_inicio_treino[0] = datetime.now()
-            painel_overview_treino.controls.clear()
-            painel_execucao_treino.controls.clear()
-            inputs_cargas.clear()
+            try:
+                if not dd_treino_ativo.value: return
+                hora_inicio_treino[0] = datetime.now()
+                painel_overview_treino.controls.clear()
+                painel_execucao_treino.controls.clear()
+                inputs_cargas.clear()
 
-            conn = sqlite3.connect(DB_PATH)
-            c = conn.cursor()
-            c.execute("SELECT nome_treino, exercicios FROM treinos_master WHERE id = ?", (dd_treino_ativo.value,))
-            row = c.fetchone()
-            conn.close()
+                conn = sqlite3.connect(DB_PATH)
+                c = conn.cursor()
+                c.execute("SELECT nome_treino, exercicios FROM treinos_master WHERE id = ?", (int(dd_treino_ativo.value),))
+                row = c.fetchone()
+                conn.close()
 
-            if row:
-                nome_t, ex_str = row
-                exercicios = [ex.strip() for ex in ex_str.split(",") if ex.strip()]
-                painel_execucao_treino.controls.append(ft.Text(f"⏱️ TREINO EM ANDAMENTO: {nome_t}", size=14, weight=ft.FontWeight.BOLD, color="#FF0055"))
+                if row:
+                    nome_t, ex_str = row
+                    exercicios = [ex.strip() for ex in ex_str.split(",") if ex.strip()]
+                    painel_execucao_treino.controls.append(ft.Text(f"⏱️ TREINO EM ANDAMENTO: {nome_t}", size=14, weight=ft.FontWeight.BOLD, color="#FF0055"))
 
-                for ex in exercicios:
-                    tf_carga = ft.TextField(label=f"Carga {ex} (kg)", border_color="#1F293D", color="#FFFFFF", text_size=11)
-                    chk = ft.Checkbox(label=f"Concluído: {ex}", fill_color="#FF0055")
-                    inputs_cargas[ex] = (tf_carga, chk)
-                    painel_execucao_treino.controls.append(
-                        ft.Container(content=ft.Column([tf_carga, chk]), padding=10, bgcolor="#0B0E14", border_radius=8, border=ft.border.all(1, "#1F293D"))
-                    )
+                    for ex in exercicios:
+                        tf_carga = ft.TextField(label=f"Carga {ex} (kg)", border_color="#1F293D", color="#FFFFFF", text_size=11)
+                        chk = ft.Checkbox(label=f"Concluído: {ex}", fill_color="#FF0055")
+                        inputs_cargas[ex] = (tf_carga, chk)
+                        painel_execucao_treino.controls.append(
+                            ft.Container(content=ft.Column([tf_carga, chk]), padding=10, bgcolor="#0B0E14", border_radius=8, border=ft.border.all(1, "#1F293D"))
+                        )
 
-                def finalizar_treino(ev):
-                    if not hora_inicio_treino[0]: return
-                    duracao = int((datetime.now() - hora_inicio_treino[0]).total_seconds() / 60)
-                    resumo_cargas = []
-                    for ex_nome, (input_c, check_c) in inputs_cargas.items():
-                        status = "✅" if check_c.value else "❌"
-                        resumo_cargas.append(f"{status} {ex_nome}: {input_c.value or '0'}kg")
+                    def finalizar_treino(ev):
+                        if not hora_inicio_treino[0]: return
+                        duracao = int((datetime.now() - hora_inicio_treino[0]).total_seconds() / 60)
+                        resumo_cargas = []
+                        for ex_nome, (input_c, check_c) in inputs_cargas.items():
+                            status = "✅" if check_c.value else "❌"
+                            resumo_cargas.append(f"{status} {ex_nome}: {input_c.value or '0'}kg")
 
-                    conn = sqlite3.connect(DB_PATH)
-                    c = conn.cursor()
-                    c.execute("INSERT INTO historico_treinos (nome_treino, duracao_min, detalhes_cargas, data) VALUES (?, ?, ?, ?)",
-                              (nome_t, f"{duracao} min", " | ".join(resumo_cargas), data_formatada))
-                    conn.commit()
-                    conn.close()
-                    add_xp(50) 
+                        conn = sqlite3.connect(DB_PATH)
+                        c = conn.cursor()
+                        c.execute("INSERT INTO historico_treinos (nome_treino, duracao_min, detalhes_cargas, data) VALUES (?, ?, ?, ?)",
+                                  (nome_t, f"{duracao} min", " | ".join(resumo_cargas), data_formatada))
+                        conn.commit()
+                        conn.close()
+                        add_xp(50) 
 
-                    painel_execucao_treino.controls.clear()
-                    painel_execucao_treino.controls.append(ft.Text(f"🎉 TREINO DE {duracao} MINUTOS SALVO!", size=12, color="#10B981", weight=ft.FontWeight.BOLD))
-                    carregar_historico_treinos()
-                    page.update()
+                        painel_execucao_treino.controls.clear()
+                        painel_execucao_treino.controls.append(ft.Text(f"🎉 TREINO DE {duracao} MINUTOS SALVO!", size=12, color="#10B981", weight=ft.FontWeight.BOLD))
+                        carregar_historico_treinos()
+                        carregar_resumo_dia()
+                        page.update()
 
-                painel_execucao_treino.controls.append(ft.ElevatedButton("🏁 FINALIZAR TREINO", bgcolor="#FF0055", color="#FFFFFF", height=45, on_click=finalizar_treino))
-            page.update()
+                    painel_execucao_treino.controls.append(ft.ElevatedButton("🏁 FINALIZAR TREINO", bgcolor="#FF0055", color="#FFFFFF", height=45, on_click=finalizar_treino))
+                page.update()
+            except Exception as ex:
+                print(f"Erro em iniciar_sessao_treino: {ex}")
 
         lista_historico_treinos_ui = ft.Column(spacing=10)
 
@@ -1148,11 +1171,12 @@ def main(page: ft.Page):
                 for t_id, nm, dur, det, dt in rows:
                     def deletar_treino(e, id_item=t_id):
                         conn = sqlite3.connect(DB_PATH)
-                        cur = conn.cursor()
+                        cur = cn.cursor()
                         cur.execute("DELETE FROM historico_treinos WHERE id = ?", (id_item,))
                         conn.commit()
                         conn.close()
                         carregar_historico_treinos()
+                        carregar_resumo_dia()
 
                     lista_historico_treinos_ui.controls.append(
                         card_premium(
@@ -1181,7 +1205,9 @@ def main(page: ft.Page):
                 ),
                 ft.Divider(color="#1F293D", height=10),
                 ft.Text("SELECIONAR TREINO", size=12, weight=ft.FontWeight.BOLD, color="#9CA3AF"),
-                dd_treino_ativo, painel_overview_treino, painel_execucao_treino,
+                dd_treino_ativo, 
+                painel_overview_treino, 
+                painel_execucao_treino,
                 ft.Divider(color="#1F293D", height=10),
                 ft.Text("HISTÓRICO DE TREINOS EXECUTADOS", size=12, weight=ft.FontWeight.BOLD, color="#9CA3AF"),
                 lista_historico_treinos_ui
@@ -1190,7 +1216,7 @@ def main(page: ft.Page):
         )
 
         # ==========================================
-        # ABA 8: DASHBOARD & BI
+        # ABA 8: DASHBOARD & BI (VISÃO 360)
         # ==========================================
         input_data_pesquisa = ft.TextField(
             value=data_formatada, label="Data de Consulta (DD/MM/YYYY)",
@@ -1213,8 +1239,9 @@ def main(page: ft.Page):
                 conn = sqlite3.connect(DB_PATH)
                 c = conn.cursor()
 
-                c.execute("SELECT rotina, tipo_excecao, horario_real FROM excecoes WHERE data = ?", (dt_busca,))
-                excecoes_do_dia = {r[0]: (r[1], r[2]) for r in c.fetchall()}
+                # 1. ROTINA & CONSISTÊNCIA + FALHAS CRUZADAS
+                c.execute("SELECT rotina, tipo_excecao, motivo, horario_real FROM excecoes WHERE data = ?", (dt_busca,))
+                excecoes_dict = {r[0]: (r[1], r[2], r[3]) for r in c.fetchall()}
 
                 c.execute("SELECT id, atividade, horario FROM rotina_master WHERE dia_semana = ?", (dia_semana_hoje,))
                 todas_rotinas = c.fetchall()
@@ -1226,15 +1253,18 @@ def main(page: ft.Page):
                     c.execute("SELECT cumprido FROM execucao_rotina WHERE rotina_id = ? AND data = ?", (rot_id, iso_busca))
                     res = c.fetchone()
                     foi_cumprido = bool(res[0]) if res else False
-                    exc_reg = excecoes_do_dia.get(ativ)
+                    exc_reg = excecoes_dict.get(ativ)
 
                     if foi_cumprido:
                         if exc_reg and "Atraso" in str(exc_reg[0]):
-                            rot_atraso.append(f"🟡 {ativ} (Prev: {hor} | Real: {exc_reg[1] or '?'})")
+                            rot_atraso.append(f"🟡 {ativ} (Prev: {hor} | Real: {exc_reg[2] or '?'})")
                         else:
                             rot_ok.append(f"🟢 {ativ} ({hor})")
                     else:
-                        rot_pend.append(f"🔴 {ativ} ({hor})")
+                        if exc_reg:
+                            rot_pend.append(f"🔴 {ativ} ({hor}) ➔ {exc_reg[0]}: {exc_reg[1]}")
+                        else:
+                            rot_pend.append(f"🔴 {ativ} ({hor}) ➔ Não realizado")
 
                 cump_count = len(rot_ok) + len(rot_atraso)
                 pct_rot = int((cump_count / total_rotinas * 100)) if total_rotinas > 0 else 0
@@ -1250,12 +1280,39 @@ def main(page: ft.Page):
                     )
                 )
 
+                # 2. GAPS / TEMPO LIVRE (AGORA INCLUSO NO RESUMO!)
+                c.execute("SELECT horario, atividade, impacto FROM gaps WHERE data = ?", (dt_busca,))
+                gaps_dia = c.fetchall()
+                if gaps_dia:
+                    txt_gaps = "\n".join([f"⏱️ {hor}: {ativ} ({imp})" for hor, ativ, imp in gaps_dia])
+                    conteudo_resumo.controls.append(
+                        card_premium(
+                            ft.Column([
+                                ft.Text("⏳ TEMPO LIVRE & GAPS REGISTRADOS", size=12, weight=ft.FontWeight.BOLD, color="#F59E0B"),
+                                ft.Text(txt_gaps, size=11, color="#FFFFFF")
+                            ]), glow_color="#F59E0B"
+                        )
+                    )
+
+                # 3. AUDITORIA DE FALHAS (AGORA INCLUSO NO RESUMO!)
+                c.execute("SELECT rotina, tipo_excecao, motivo, solucao FROM excecoes WHERE data = ?", (dt_busca,))
+                excecoes_lista = c.fetchall()
+                if excecoes_lista:
+                    txt_excecoes = "\n".join([f"⚠️ {rot} ({t_exc})\n   • Motivo: {mot}\n   • Plano de Ação: {sol or 'N/A'}" for rot, t_exc, mot, sol in excecoes_lista])
+                    conteudo_resumo.controls.append(
+                        card_premium(
+                            ft.Column([
+                                ft.Text("🚨 AUDITORIA DE FALHAS DO DIA", size=12, weight=ft.FontWeight.BOLD, color="#EF4444"),
+                                ft.Text(txt_excecoes, size=11, color="#FFFFFF")
+                            ]), glow_color="#EF4444"
+                        )
+                    )
+
+                # 4. MOVIMENTAÇÃO FINANCEIRA
                 c.execute("SELECT descricao, valor, categoria, tipo FROM financas WHERE data = ?", (dt_busca,))
                 financas_dia = c.fetchall()
-                
                 gasto_dia = sum(val for _, val, _, t in financas_dia if t == 'saida')
                 entrada_dia = sum(val for _, val, _, t in financas_dia if t == 'entrada')
-                
                 txt_compras = "\n".join([f"• {desc}: {'+' if t=='entrada' else '-'} R$ {val:,.2f} ({cat})" for desc, val, cat, t in financas_dia]) if financas_dia else "Nenhuma movimentação financeira hoje."
                 
                 conteudo_resumo.controls.append(
@@ -1267,6 +1324,7 @@ def main(page: ft.Page):
                     )
                 )
 
+                # 5. TREINOS, DIETA & HIDRATAÇÃO
                 c.execute("SELECT nome_treino, duracao_min, detalhes_cargas FROM historico_treinos WHERE data = ?", (dt_busca,))
                 treinos_dia = c.fetchall()
                 c.execute("SELECT tipo, descricao FROM refeicoes WHERE data = ?", (dt_busca,))
@@ -1279,12 +1337,8 @@ def main(page: ft.Page):
                 copos_dia_resumo = res_agua_dia[0] if res_agua_dia else 0
                 litros_dia = copos_dia_resumo * 0.25
                 
-                if litros_dia >= 3.0:
-                    txt_agua = f"💧 Água: {litros_dia:.2f}L / 3.0L (✅ Meta Atingida!)"
-                    cor_agua = "#10B981"
-                else:
-                    txt_agua = f"💧 Água: {litros_dia:.2f}L / 3.0L (🔴 Faltou água!)"
-                    cor_agua = "#EF4444"
+                txt_agua = f"💧 Água: {litros_dia:.2f}L / 3.0L (" + ("✅ Meta Atingida!" if litros_dia >= 3.0 else "🔴 Faltou água!") + ")"
+                cor_agua = "#10B981" if litros_dia >= 3.0 else "#EF4444"
 
                 conn.close()
 
@@ -1311,7 +1365,8 @@ def main(page: ft.Page):
                     )
 
                 page.update()
-            except: pass
+            except Exception as ex:
+                print(f"Erro no resumo: {ex}")
 
         view_analytics = ft.Container(
             content=ft.Column([
@@ -1358,11 +1413,35 @@ def main(page: ft.Page):
             ], expand=True, spacing=0)
         )
 
-        # Inicializações seguras
+        # Inicializações seguras no arranque
         try: atualizar_header_xp()
         except: pass
         
         try: carregar_rotina_do_dia()
+        except: pass
+
+        try: carregar_gaps()
+        except: pass
+
+        try: carregar_excecoes()
+        except: pass
+
+        try: carregar_refeicoes()
+        except: pass
+
+        try: atualizar_financeiro()
+        except: pass
+
+        try: carregar_diario()
+        except: pass
+
+        try: carregar_treinos_master()
+        except: pass
+
+        try: carregar_historico_treinos()
+        except: pass
+
+        try: carregar_resumo_dia()
         except: pass
 
     except Exception as e:
