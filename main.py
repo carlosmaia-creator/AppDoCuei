@@ -4,16 +4,17 @@ import os
 from datetime import date, datetime, timedelta
 
 # ==========================================
-# CAMINHO ABSOLUTO DO BANCO DE DADOS
+# CAMINHO ABSOLUTO E SEGURO DO BANCO DE DADOS
 # ==========================================
 try:
-    # Tenta usar a pasta do usuário (Funciona perfeitamente no PC)
+    # Tenta criar arquivo de teste no diretório de usuário (Funciona no PC)
     PASTA_SEGURA = os.path.expanduser("~")
     teste = os.path.join(PASTA_SEGURA, ".teste_gravacao")
-    with open(teste, "w") as f: pass
+    with open(teste, "w") as f:
+        pass
     os.remove(teste)
 except Exception:
-    # Se o Android bloquear (o que sempre acontece), usamos a pasta segura do app
+    # No Android, usará o diretório interno isolado e permitido do app
     PASTA_SEGURA = os.getcwd()
 
 DB_PATH = os.path.join(PASTA_SEGURA, "life_os.db")
@@ -58,12 +59,10 @@ init_db()
 
 def main(page: ft.Page):
     page.title = "Vida do Cuei"
-    page.window_width = 490
-    page.window_height = 850
-    page.window_resizable = False
     page.theme_mode = ft.ThemeMode.DARK
-    page.padding = 0
+    page.padding = 5
     page.bgcolor = "#05070A" 
+    page.scroll = ft.ScrollMode.AUTO
 
     data_hoje_iso = date.today().strftime("%Y-%m-%d")
     data_formatada = date.today().strftime("%d/%m/%Y")
@@ -216,11 +215,11 @@ def main(page: ft.Page):
                         ft.Column([
                             ft.Row([
                                 ft.Text(f"• {at_o}", size=13, weight=ft.FontWeight.BOLD, color="#FFFFFF", expand=True),
-                                ft.IconButton(icon=ft.icons.DELETE, icon_color="#EF4444", icon_size=18, tooltip="Apagar tarefa", on_click=deletar_item)
+                                ft.IconButton(icon=ft.Icons.DELETE, icon_color="#EF4444", icon_size=18, tooltip="Apagar tarefa", on_click=deletar_item)
                             ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
                             ft.Row([
                                 tf_hor_edit, tf_desc_edit,
-                                ft.IconButton(icon=ft.icons.SAVE, icon_color="#10B981", icon_size=20, tooltip="Salvar alteração", on_click=salvar_item)
+                                ft.IconButton(icon=ft.Icons.SAVE, icon_color="#10B981", icon_size=20, tooltip="Salvar alteração", on_click=salvar_item)
                             ], spacing=6)
                         ]), glow_color="#3B82F6"
                     )
@@ -236,7 +235,7 @@ def main(page: ft.Page):
                 content=ft.Column([
                     ft.Row([
                         ft.Text(f"📌 TAREFAS DE {dia_nome.upper()}", size=14, weight=ft.FontWeight.BOLD, color="#00F2FE"),
-                        ft.IconButton(icon=ft.icons.CLOSE, icon_color="#9CA3AF", on_click=fechar_bs)
+                        ft.IconButton(icon=ft.Icons.CLOSE, icon_color="#9CA3AF", on_click=fechar_bs)
                     ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
                     ft.Divider(color="#1F293D", height=10),
                     conteudo_modal
@@ -303,7 +302,7 @@ def main(page: ft.Page):
                     ft.Column([
                         ft.Text(f"📅 HOJE É: {dia_semana_hoje.upper()} ({data_formatada})", size=13, weight=ft.FontWeight.BOLD, color="#00F2FE"),
                         ft.Text("Seu dia ainda não foi iniciado. Clique abaixo para começar!", size=11, color="#9CA3AF"),
-                        ft.ElevatedButton("☀️ INICIAR O DIA", bgcolor="#00F2FE", color="#000000", width=450, height=45, on_click=iniciar_dia_action)
+                        ft.ElevatedButton("☀️ INICIAR O DIA", bgcolor="#00F2FE", color="#000000", height=45, on_click=iniciar_dia_action)
                     ]), glow_color="#00F2FE"
                 )
             )
@@ -330,7 +329,7 @@ def main(page: ft.Page):
                             ft.Text(f"🌙 DIA CONCLUÍDO! ({dia_semana_hoje})", size=13, weight=ft.FontWeight.BOLD, color="#EC4899"),
                             ft.Text(f"Início: {h_ini} | Fim: {h_fim}", size=10, color="#9CA3AF")
                         ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-                        ft.ElevatedButton("↩️ Retomar Dia (Desfazer Conclusão)", bgcolor="#1F293D", color="#00F2FE", width=450, height=38, on_click=desfazer_ciclo_action)
+                        ft.ElevatedButton("↩️ Retomar Dia (Desfazer Conclusão)", bgcolor="#1F293D", color="#00F2FE", height=38, on_click=desfazer_ciclo_action)
                     ]), glow_color="#EC4899"
                 )
             )
@@ -408,7 +407,7 @@ def main(page: ft.Page):
                         ft.Row([
                             ft.Container(content=ft.Text(hor, size=10, color="#000000", weight=ft.FontWeight.BOLD), bgcolor=cor_card, padding=4, border_radius=4),
                             ft.Text(ativ, size=14, weight=ft.FontWeight.BOLD, color="#FFFFFF", expand=True),
-                            ft.IconButton(icon=ft.icons.DELETE, icon_color="#EF4444", tooltip="Apagar", on_click=deletar_rotina)
+                            ft.IconButton(icon=ft.Icons.DELETE, icon_color="#EF4444", tooltip="Apagar", on_click=deletar_rotina)
                         ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
                         ft.Text(f"Detalhes: {desc}", size=11, color="#9CA3AF") if desc else ft.Container(),
                         alerta_ui,
@@ -462,11 +461,11 @@ def main(page: ft.Page):
                 ft.Column([
                     ft.Text("CONFIGURAR ROTINA POR DIA", size=11, weight=ft.FontWeight.BOLD, color="#9CA3AF"),
                     dd_dia_semana_cadastro, txt_horario, txt_atividade, txt_descricao,
-                    ft.ElevatedButton("CADASTRAR NESTE DIA", bgcolor="#1F293D", color="#FFFFFF", width=450, height=40, on_click=salvar_rotina_master)
+                    ft.ElevatedButton("CADASTRAR NESTE DIA", bgcolor="#1F293D", color="#FFFFFF", height=40, on_click=salvar_rotina_master)
                 ], spacing=8), glow_color="#1F293D"
             )
         ], spacing=12, scroll=ft.ScrollMode.AUTO),
-        padding=20
+        padding=10
     )
 
     # ==========================================
@@ -507,7 +506,7 @@ def main(page: ft.Page):
                             ft.Text(ativ, size=11, color="#9CA3AF")
                         ], expand=True),
                         ft.Text(imp, size=11, color=cor_gap, weight=ft.FontWeight.BOLD),
-                        ft.IconButton(icon=ft.icons.DELETE, icon_color="#EF4444", tooltip="Apagar Gap", on_click=deletar_gap)
+                        ft.IconButton(icon=ft.Icons.DELETE, icon_color="#EF4444", tooltip="Apagar Gap", on_click=deletar_gap)
                     ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN), glow_color=cor_gap
                 )
             )
@@ -546,11 +545,11 @@ def main(page: ft.Page):
         content=ft.Column([
             cabecalho("2. Rastreio de Tempo Livre", "Mapeie seus intervalos e desperdícios", "#F59E0B"),
             gap_horario, gap_atividade, gap_impacto,
-            ft.ElevatedButton("REGISTRAR USO DO TEMPO", bgcolor="#F59E0B", color="#000000", width=450, height=45, on_click=salvar_gap),
+            ft.ElevatedButton("REGISTRAR USO DO TEMPO", bgcolor="#F59E0B", color="#000000", height=45, on_click=salvar_gap),
             ft.Text("GAPS RECENTES REGISTRADOS", size=12, weight=ft.FontWeight.BOLD, color="#9CA3AF"),
             lista_gaps_ui
         ], spacing=12, scroll=ft.ScrollMode.AUTO),
-        padding=20
+        padding=10
     )
 
     # ==========================================
@@ -584,7 +583,7 @@ def main(page: ft.Page):
                         ft.Row([
                             ft.Text(f"Erro em: {rot}", size=13, weight=ft.FontWeight.BOLD, color=cor_borda),
                             ft.Text(dt or "", size=10, color="#6B7280"),
-                            ft.IconButton(icon=ft.icons.DELETE, icon_color="#EF4444", tooltip="Apagar", on_click=deletar_excecao)
+                            ft.IconButton(icon=ft.Icons.DELETE, icon_color="#EF4444", tooltip="Apagar", on_click=deletar_excecao)
                         ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
                         ft.Text(f"Classificação: {t_exc} " + (f"(Realizado: {h_real})" if h_real else ""), size=11, color="#FFFFFF", weight=ft.FontWeight.BOLD),
                         ft.Text(f"Motivo: {mot}", size=11, color="#9CA3AF"),
@@ -627,11 +626,11 @@ def main(page: ft.Page):
         content=ft.Column([
             cabecalho("3. Diário de Exceções", "Auditoria de não-conformidade (Puxado da sua Rotina)", "#EF4444"),
             dd_excecoes_rotina, dd_tipo_excecao, exc_horario_real, exc_motivo, exc_solucao,
-            ft.ElevatedButton("SALVAR FALHA / ATRASO", bgcolor="#EF4444", color="#FFFFFF", width=450, height=45, on_click=salvar_excecao),
+            ft.ElevatedButton("SALVAR FALHA / ATRASO", bgcolor="#EF4444", color="#FFFFFF", height=45, on_click=salvar_excecao),
             ft.Text("HISTÓRICO DE EXCEÇÕES", size=12, weight=ft.FontWeight.BOLD, color="#9CA3AF"),
             lista_excecoes_ui
         ], spacing=12, scroll=ft.ScrollMode.AUTO),
-        padding=20
+        padding=10
     )
 
     # ==========================================
@@ -739,7 +738,7 @@ def main(page: ft.Page):
                         ft.Row([
                             ft.Text(tip, size=13, weight=ft.FontWeight.BOLD, color="#10B981"),
                             ft.Text(dt or "", size=10, color="#6B7280"),
-                            ft.IconButton(icon=ft.icons.DELETE, icon_color="#EF4444", tooltip="Apagar", on_click=deletar_refeicao)
+                            ft.IconButton(icon=ft.Icons.DELETE, icon_color="#EF4444", tooltip="Apagar", on_click=deletar_refeicao)
                         ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
                         ft.Text(f"Prato: {desc}", size=11, color="#FFFFFF"),
                         ft.Text(f"📸 {ft_nom}", size=10, color="#3B82F6") if ft_nom else ft.Container()
@@ -779,11 +778,11 @@ def main(page: ft.Page):
             dd_tipo_refeicao, txt_desc_refeicao,
             ft.ElevatedButton("Anexar Foto da Refeição 📸", bgcolor="#1F293D", color="#FFFFFF", on_click=lambda _: file_picker.pick_files(allow_multiple=False)),
             lbl_foto,
-            ft.ElevatedButton("REGISTRAR REFEIÇÃO", bgcolor="#10B981", color="#000000", width=450, height=45, on_click=salvar_refeicao),
+            ft.ElevatedButton("REGISTRAR REFEIÇÃO", bgcolor="#10B981", color="#000000", height=45, on_click=salvar_refeicao),
             ft.Text("REFEIÇÕES LANÇADAS", size=12, weight=ft.FontWeight.BOLD, color="#9CA3AF"),
             lista_refeicoes_ui
         ], spacing=12, scroll=ft.ScrollMode.AUTO),
-        padding=20
+        padding=10
     )
 
     # ==========================================
@@ -833,7 +832,7 @@ def main(page: ft.Page):
                             ft.Text(cat, size=10, color="#9CA3AF")
                         ], expand=True),
                         ft.Text(f"{sinal} R$ {val:,.2f}", size=12, color=cor_valor, weight=ft.FontWeight.BOLD),
-                        ft.IconButton(icon=ft.icons.DELETE, icon_color="#EF4444", tooltip="Apagar", on_click=deletar_compra)
+                        ft.IconButton(icon=ft.Icons.DELETE, icon_color="#EF4444", tooltip="Apagar", on_click=deletar_compra)
                     ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN), glow_color=cor_valor
                 )
             )
@@ -910,11 +909,11 @@ def main(page: ft.Page):
             ft.Divider(color="#1F293D", height=10),
             ft.Text("NOVA MOVIMENTAÇÃO", size=12, weight=ft.FontWeight.BOLD, color="#9CA3AF"),
             dd_tipo_transacao, fin_valor, fin_desc, fin_cat,
-            ft.ElevatedButton("LANÇAR MOVIMENTAÇÃO", bgcolor="#8B5CF6", color="#FFFFFF", width=450, height=45, on_click=lancar_transacao),
+            ft.ElevatedButton("LANÇAR MOVIMENTAÇÃO", bgcolor="#8B5CF6", color="#FFFFFF", height=45, on_click=lancar_transacao),
             ft.Text("HISTÓRICO DO COFRE", size=12, weight=ft.FontWeight.BOLD, color="#9CA3AF"),
             lista_compras_ui
         ], spacing=12, scroll=ft.ScrollMode.AUTO),
-        padding=20
+        padding=10
     )
 
     # ==========================================
@@ -947,7 +946,7 @@ def main(page: ft.Page):
                     ft.Column([
                         ft.Row([
                             ft.Text(f"Registro em: {dt or ''}", size=12, weight=ft.FontWeight.BOLD, color="#EC4899"),
-                            ft.IconButton(icon=ft.icons.DELETE, icon_color="#EF4444", tooltip="Apagar", on_click=deletar_diario)
+                            ft.IconButton(icon=ft.Icons.DELETE, icon_color="#EF4444", tooltip="Apagar", on_click=deletar_diario)
                         ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
                         ft.Text(f"🏆 Vitória: {vit}", size=11, color="#FFFFFF") if vit else ft.Container(),
                         ft.Text(f"💡 Lição: {lic}", size=11, color="#00F2FE") if lic else ft.Container(),
@@ -975,11 +974,11 @@ def main(page: ft.Page):
         content=ft.Column([
             cabecalho("6. Retrospectiva & Mindset", "Análise do seu estado mental e desabafo", "#EC4899"),
             dia_vitoria, dia_licao, dia_desabafo,
-            ft.ElevatedButton("REGISTRAR DIÁRIO", bgcolor="#EC4899", color="#FFFFFF", width=450, height=45, on_click=salvar_diario),
+            ft.ElevatedButton("REGISTRAR DIÁRIO", bgcolor="#EC4899", color="#FFFFFF", height=45, on_click=salvar_diario),
             ft.Text("REFLEXÕES REGISTRADAS", size=12, weight=ft.FontWeight.BOLD, color="#9CA3AF"),
             lista_diario_ui
         ], spacing=12, scroll=ft.ScrollMode.AUTO),
-        padding=20
+        padding=10
     )
 
     # ==========================================
@@ -1031,10 +1030,10 @@ def main(page: ft.Page):
                     ft.Column([
                         ft.Row([
                             ft.Text(f"📋 PRÉVIA DA FICHA: {nome_t.upper()}", size=12, weight=ft.FontWeight.BOLD, color="#FF0055"),
-                            ft.IconButton(icon=ft.icons.DELETE, icon_color="#EF4444", tooltip="Apagar Ficha Master", on_click=deletar_treino_master_btn)
+                            ft.IconButton(icon=ft.Icons.DELETE, icon_color="#EF4444", tooltip="Apagar Ficha Master", on_click=deletar_treino_master_btn)
                         ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
                         ft.Text(f"Exercícios inclusos nesta sessão:\n{lista_ex_fmt}", size=11, color="#FFFFFF"),
-                        ft.ElevatedButton("▶️ INICIAR TREINO AGORA", bgcolor="#10B981", color="#000000", width=450, height=45, on_click=iniciar_sessao_treino)
+                        ft.ElevatedButton("▶️ INICIAR TREINO AGORA", bgcolor="#10B981", color="#000000", height=45, on_click=iniciar_sessao_treino)
                     ]), glow_color="#FF0055"
                 )
             )
@@ -1110,7 +1109,7 @@ def main(page: ft.Page):
                 carregar_historico_treinos()
                 page.update()
 
-            painel_execucao_treino.controls.append(ft.ElevatedButton("🏁 FINALIZAR TREINO", bgcolor="#FF0055", color="#FFFFFF", width=450, height=45, on_click=finalizar_treino))
+            painel_execucao_treino.controls.append(ft.ElevatedButton("🏁 FINALIZAR TREINO", bgcolor="#FF0055", color="#FFFFFF", height=45, on_click=finalizar_treino))
         page.update()
 
     lista_historico_treinos_ui = ft.Column(spacing=10)
@@ -1138,7 +1137,7 @@ def main(page: ft.Page):
                         ft.Row([
                             ft.Text(f"🏋️ {nm}", size=13, weight=ft.FontWeight.BOLD, color="#FF0055"),
                             ft.Text(f"⏱️ {dur} • {dt}", size=10, color="#6B7280"),
-                            ft.IconButton(icon=ft.icons.DELETE, icon_color="#EF4444", tooltip="Apagar", on_click=deletar_treino)
+                            ft.IconButton(icon=ft.Icons.DELETE, icon_color="#EF4444", tooltip="Apagar", on_click=deletar_treino)
                         ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
                         ft.Text(det, size=11, color="#FFFFFF")
                     ]), glow_color="#FF0055"
@@ -1163,7 +1162,7 @@ def main(page: ft.Page):
             ft.Text("HISTÓRICO DE TREINOS EXECUTADOS", size=12, weight=ft.FontWeight.BOLD, color="#9CA3AF"),
             lista_historico_treinos_ui
         ], spacing=12, scroll=ft.ScrollMode.AUTO),
-        padding=20
+        padding=10
     )
 
     # ==========================================
@@ -1220,9 +1219,9 @@ def main(page: ft.Page):
             grafico_rotina = ft.Container(
                 content=ft.PieChart(
                     sections=[
-                        ft.PieChartSection(value=len(rot_ok), color="#10B981", title=f"{len(rot_ok)}", radius=25, title_style=ft.TextStyle(size=10, color=ft.colors.WHITE)),
-                        ft.PieChartSection(value=len(rot_atraso), color="#F59E0B", title=f"{len(rot_atraso)}", radius=25, title_style=ft.TextStyle(size=10, color=ft.colors.WHITE)),
-                        ft.PieChartSection(value=len(rot_pend), color="#EF4444", title=f"{len(rot_pend)}", radius=25, title_style=ft.TextStyle(size=10, color=ft.colors.WHITE)),
+                        ft.PieChartSection(value=len(rot_ok), color="#10B981", title=f"{len(rot_ok)}", radius=25, title_style=ft.TextStyle(size=10, color=ft.Colors.WHITE)),
+                        ft.PieChartSection(value=len(rot_atraso), color="#F59E0B", title=f"{len(rot_atraso)}", radius=25, title_style=ft.TextStyle(size=10, color=ft.Colors.WHITE)),
+                        ft.PieChartSection(value=len(rot_pend), color="#EF4444", title=f"{len(rot_pend)}", radius=25, title_style=ft.TextStyle(size=10, color=ft.Colors.WHITE)),
                     ],
                     sections_space=2, center_space_radius=30, expand=True
                 ), height=100
@@ -1240,7 +1239,7 @@ def main(page: ft.Page):
                 gastos_cat[cat] = gastos_cat.get(cat, 0) + val
         
         cores_fin = ["#3B82F6", "#8B5CF6", "#EC4899", "#F59E0B", "#10B981", "#EF4444"]
-        sections_fin = [ft.PieChartSection(value=v, color=cores_fin[i%6], title=f"R${v:.0f}", radius=25, title_style=ft.TextStyle(size=10, color=ft.colors.WHITE)) for i, (k, v) in enumerate(gastos_cat.items())]
+        sections_fin = [ft.PieChartSection(value=v, color=cores_fin[i%6], title=f"R${v:.0f}", radius=25, title_style=ft.TextStyle(size=10, color=ft.Colors.WHITE)) for i, (k, v) in enumerate(gastos_cat.items())]
         
         grafico_financas = ft.Container()
         if sections_fin:
@@ -1322,7 +1321,7 @@ def main(page: ft.Page):
             ft.Divider(color="#1F293D", height=10),
             conteudo_resumo
         ], spacing=12, scroll=ft.ScrollMode.AUTO),
-        padding=20
+        padding=10
     )
 
     # ==========================================
@@ -1341,14 +1340,14 @@ def main(page: ft.Page):
         indicator_color="#00F2FE",
         on_change=navegar,
         destinations=[
-            ft.NavigationDestination(icon=ft.icons.CHECK_BOX, label="Rotina"),
-            ft.NavigationDestination(icon=ft.icons.TIMELAPSE, label="Gaps"),
-            ft.NavigationDestination(icon=ft.icons.REPORT_PROBLEM, label="Falhas"),
-            ft.NavigationDestination(icon=ft.icons.FITNESS_CENTER, label="Saúde"),
-            ft.NavigationDestination(icon=ft.icons.ACCOUNT_BALANCE_WALLET, label="Cofre"),
-            ft.NavigationDestination(icon=ft.icons.AUTO_STORIES, label="Diário"),
-            ft.NavigationDestination(icon=ft.icons.SPORTS_GYMNASTICS, label="Treino"),
-            ft.NavigationDestination(icon=ft.icons.PIE_CHART, label="Visão"),
+            ft.NavigationDestination(icon=ft.Icons.CHECK_BOX, label="Rotina"),
+            ft.NavigationDestination(icon=ft.Icons.TIMELAPSE, label="Gaps"),
+            ft.NavigationDestination(icon=ft.Icons.REPORT_PROBLEM, label="Falhas"),
+            ft.NavigationDestination(icon=ft.Icons.FITNESS_CENTER, label="Saúde"),
+            ft.NavigationDestination(icon=ft.Icons.ACCOUNT_BALANCE_WALLET, label="Cofre"),
+            ft.NavigationDestination(icon=ft.Icons.AUTO_STORIES, label="Diário"),
+            ft.NavigationDestination(icon=ft.Icons.SPORTS_GYMNASTICS, label="Treino"),
+            ft.NavigationDestination(icon=ft.Icons.PIE_CHART, label="Visão"),
         ]
     )
 
@@ -1366,4 +1365,4 @@ def main(page: ft.Page):
     carregar_resumo_dia()
 
 if __name__ == "__main__":
-    ft.app(target=main, view=ft.AppView.FLET_APP, host="0.0.0.0", port=8550)
+    ft.app(target=main)
