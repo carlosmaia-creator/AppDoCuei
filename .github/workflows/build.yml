@@ -30,7 +30,7 @@ jobs:
       - name: Configurar Flutter (O Motor do App)
         uses: subosito/flutter-action@v2
         with:
-          channel: 'stable'
+          flutter-version: '3.19.6' 
 
       - name: Fabricar o APK!
         run: flet build apk
