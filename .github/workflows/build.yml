@@ -1,0 +1,42 @@
+name: Build APK
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Pegar os arquivos do app
+        uses: actions/checkout@v4
+
+      - name: Instalar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Instalar o Flet
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Configurar Java (Exigência do Android)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Configurar Flutter (O Motor do App)
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Fabricar o APK!
+        run: flet build apk
+
+      - name: Guardar o APK para você baixar
+        uses: actions/upload-artifact@v4
+        with:
+          name: VidaDoCuei-APK
+          path: build/apk/**/*.apk
