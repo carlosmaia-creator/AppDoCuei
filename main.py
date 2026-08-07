@@ -1152,7 +1152,17 @@ def main(page: ft.Page):
                         carregar_resumo_dia()
                         page.update()
 
-                    painel_execucao_treino.controls.append(ft.ElevatedButton("🏁 FINALIZAR TREINO", bgcolor="#FF0055", color="#FFFFFF", height=45, on_click=finalizar_treino))
+                    def cancelar_treino(ev):
+                        hora_inicio_treino[0] = None
+                        painel_execucao_treino.controls.clear()
+                        atualizar_overview_treino(None)
+
+                    painel_execucao_treino.controls.append(
+                        ft.Column([
+                            ft.ElevatedButton("🏁 FINALIZAR TREINO", bgcolor="#FF0055", color="#FFFFFF", height=45, on_click=finalizar_treino),
+                            ft.ElevatedButton("❌ CANCELAR SESSÃO DE TREINO", bgcolor="#1F293D", color="#EF4444", height=40, on_click=cancelar_treino)
+                        ], spacing=8)
+                    )
                 page.update()
             except Exception as ex:
                 print(f"Erro em iniciar_sessao_treino: {ex}")
@@ -1171,8 +1181,8 @@ def main(page: ft.Page):
                 for t_id, nm, dur, det, dt in rows:
                     def deletar_treino(e, id_item=t_id):
                         conn = sqlite3.connect(DB_PATH)
-                        cur = cn.cursor()
-                        cur.execute("DELETE FROM historico_treinos WHERE id = ?", (id_item,))
+                        c = conn.cursor()
+                        c.execute("DELETE FROM historico_treinos WHERE id = ?", (id_item,))
                         conn.commit()
                         conn.close()
                         carregar_historico_treinos()
@@ -1184,14 +1194,15 @@ def main(page: ft.Page):
                                 ft.Row([
                                     ft.Text(f"🏋️ {nm}", size=13, weight=ft.FontWeight.BOLD, color="#FF0055"),
                                     ft.Text(f"⏱️ {dur} • {dt}", size=10, color="#6B7280"),
-                                    ft.IconButton(icon=ft.icons.DELETE, icon_color="#EF4444", tooltip="Apagar", on_click=deletar_treino)
+                                    ft.IconButton(icon=ft.icons.DELETE, icon_color="#EF4444", tooltip="Apagar Histórico de Treino", on_click=deletar_treino)
                                 ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
                                 ft.Text(det, size=11, color="#FFFFFF")
                             ]), glow_color="#FF0055"
                         )
                     )
                 page.update()
-            except: pass
+            except Exception as ex:
+                print(f"Erro em carregar_historico_treinos: {ex}")
 
         view_treino = ft.Container(
             content=ft.Column([
@@ -1280,7 +1291,7 @@ def main(page: ft.Page):
                     )
                 )
 
-                # 2. GAPS / TEMPO LIVRE (AGORA INCLUSO NO RESUMO!)
+                # 2. GAPS / TEMPO LIVRE
                 c.execute("SELECT horario, atividade, impacto FROM gaps WHERE data = ?", (dt_busca,))
                 gaps_dia = c.fetchall()
                 if gaps_dia:
@@ -1294,7 +1305,7 @@ def main(page: ft.Page):
                         )
                     )
 
-                # 3. AUDITORIA DE FALHAS (AGORA INCLUSO NO RESUMO!)
+                # 3. AUDITORIA DE FALHAS
                 c.execute("SELECT rotina, tipo_excecao, motivo, solucao FROM excecoes WHERE data = ?", (dt_busca,))
                 excecoes_lista = c.fetchall()
                 if excecoes_lista:
