@@ -1,4 +1,4 @@
-name: Build iOS App
+name: Build Android App
 
 on:
   push:
@@ -6,12 +6,18 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-ios:
-    runs-on: macos-latest
+  build-android:
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout do código
         uses: actions/checkout@v3
+
+      - name: Configurar Java JDK 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
 
       - name: Configurar Python
         uses: actions/setup-python@v4
@@ -28,17 +34,12 @@ jobs:
         run: |
           pip install flet
 
-      - name: Compilar App para iOS
+      - name: Compilar APK do Android
         run: |
-          flet build ipa --flutter-build-args=--no-codesign
+          flet build apk
 
-      - name: Compactar Arquivos Gerados do iOS
-        run: |
-          cd build/ipa || cd build/ios || cd build
-          zip -r ../vida_do_cuei_ios.zip .
-
-      - name: Disponibilizar o App iOS para Download (Artifact)
+      - name: Disponibilizar o APK para Download (Artifact)
         uses: actions/upload-artifact@v4
         with:
-          name: App-iOS-Vida-do-Cuei
-          path: vida_do_cuei_ios.zip
+          name: Vida-do-Cuei-Android
+          path: build/apk/*.apk
