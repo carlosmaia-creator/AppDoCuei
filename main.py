@@ -7,14 +7,12 @@ from datetime import date, datetime, timedelta
 # CAMINHO ABSOLUTO E SEGURO DO BANCO DE DADOS
 # ==========================================
 try:
-    # Tenta criar arquivo de teste no diretório de usuário (Funciona no PC)
     PASTA_SEGURA = os.path.expanduser("~")
     teste = os.path.join(PASTA_SEGURA, ".teste_gravacao")
     with open(teste, "w") as f:
         pass
     os.remove(teste)
 except Exception:
-    # No Android, usará o diretório interno isolado e permitido do app
     PASTA_SEGURA = os.getcwd()
 
 DB_PATH = os.path.join(PASTA_SEGURA, "life_os.db")
@@ -35,10 +33,7 @@ def init_db():
     except sqlite3.OperationalError: pass
 
     c.execute("""CREATE TABLE IF NOT EXISTS refeicoes (id INTEGER PRIMARY KEY AUTOINCREMENT, tipo TEXT, descricao TEXT, foto_nome TEXT, data TEXT)""")
-    
-    # NOVA TABELA PARA SALVAR O HISTÓRICO DE ÁGUA
     c.execute("""CREATE TABLE IF NOT EXISTS agua_diaria (data TEXT PRIMARY KEY, copos INTEGER)""")
-    
     c.execute("""CREATE TABLE IF NOT EXISTS financas (id INTEGER PRIMARY KEY AUTOINCREMENT, descricao TEXT, valor REAL, categoria TEXT, data TEXT, tipo TEXT)""")
     try:
         c.execute("ALTER TABLE financas ADD COLUMN tipo TEXT DEFAULT 'saida'")
@@ -82,10 +77,10 @@ def main(page: ft.Page):
                 begin=ft.alignment.top_left, end=ft.alignment.bottom_right,
                 colors=["#111621", "#090C13"]
             ),
-            border=ft.border.all(1, ft.colors.with_opacity(0.4, glow_color)),
+            border=ft.border.all(1, ft.Colors.with_opacity(0.4, glow_color)),
             shadow=ft.BoxShadow(
                 spread_radius=1, blur_radius=10, 
-                color=ft.colors.with_opacity(0.15, glow_color),
+                color=ft.Colors.with_opacity(0.15, glow_color),
                 offset=ft.Offset(0, 4)
             )
         )
@@ -634,10 +629,8 @@ def main(page: ft.Page):
     )
 
     # ==========================================
-    # ABA 4: SAÚDE & CORPO (COM META DE ÁGUA DE 3L)
+    # ABA 4: SAÚDE & CORPO
     # ==========================================
-    
-    # Busca a água salva hoje (se houver)
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute("SELECT copos FROM agua_diaria WHERE data = ?", (data_formatada,))
@@ -672,7 +665,7 @@ def main(page: ft.Page):
     def add_agua(e):
         contador_agua[0] += 1
         if contador_agua[0] == 12 and not agua_meta_xp_ganho[0]:
-            add_xp(20) # Bônus de XP pela meta de 3 Litros
+            add_xp(20)
             agua_meta_xp_ganho[0] = True
         salvar_agua_db()
         atualizar_texto_agua()
@@ -688,7 +681,7 @@ def main(page: ft.Page):
         salvar_agua_db()
         atualizar_texto_agua()
         
-    atualizar_texto_agua() # Chamada inicial
+    atualizar_texto_agua()
 
     lbl_foto = ft.Text("Nenhuma foto selecionada", size=11, color="#9CA3AF")
     foto_path = [""]
@@ -1252,7 +1245,6 @@ def main(page: ft.Page):
         c.execute("SELECT vitoria, desabafo FROM diario WHERE data = ?", (dt_busca,))
         diario_dia = c.fetchone()
         
-        # LÓGICA DE ÁGUA NO BI
         c.execute("SELECT copos FROM agua_diaria WHERE data = ?", (dt_busca,))
         res_agua_dia = c.fetchone()
         copos_dia_resumo = res_agua_dia[0] if res_agua_dia else 0
