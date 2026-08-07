@@ -59,9 +59,8 @@ init_db()
 def main(page: ft.Page):
     page.title = "Vida do Cuei"
     page.theme_mode = ft.ThemeMode.DARK
-    page.padding = 5
+    page.padding = 0
     page.bgcolor = "#05070A" 
-    page.scroll = ft.ScrollMode.AUTO
 
     try:
         data_hoje_iso = date.today().strftime("%Y-%m-%d")
@@ -473,7 +472,7 @@ def main(page: ft.Page):
                     ], spacing=8), glow_color="#1F293D"
                 )
             ], spacing=12, scroll=ft.ScrollMode.AUTO),
-            padding=10
+            padding=15, expand=True
         )
 
         # ==========================================
@@ -559,7 +558,7 @@ def main(page: ft.Page):
                 ft.Text("GAPS RECENTES REGISTRADOS", size=12, weight=ft.FontWeight.BOLD, color="#9CA3AF"),
                 lista_gaps_ui
             ], spacing=12, scroll=ft.ScrollMode.AUTO),
-            padding=10
+            padding=15, expand=True
         )
 
         # ==========================================
@@ -642,7 +641,7 @@ def main(page: ft.Page):
                 ft.Text("HISTÓRICO DE EXCEÇÕES", size=12, weight=ft.FontWeight.BOLD, color="#9CA3AF"),
                 lista_excecoes_ui
             ], spacing=12, scroll=ft.ScrollMode.AUTO),
-            padding=10
+            padding=15, expand=True
         )
 
         # ==========================================
@@ -799,7 +798,7 @@ def main(page: ft.Page):
                 ft.Text("REFEIÇÕES LANÇADAS", size=12, weight=ft.FontWeight.BOLD, color="#9CA3AF"),
                 lista_refeicoes_ui
             ], spacing=12, scroll=ft.ScrollMode.AUTO),
-            padding=10
+            padding=15, expand=True
         )
 
         # ==========================================
@@ -932,7 +931,7 @@ def main(page: ft.Page):
                 ft.Text("HISTÓRICO DO COFRE", size=12, weight=ft.FontWeight.BOLD, color="#9CA3AF"),
                 lista_compras_ui
             ], spacing=12, scroll=ft.ScrollMode.AUTO),
-            padding=10
+            padding=15, expand=True
         )
 
         # ==========================================
@@ -999,7 +998,7 @@ def main(page: ft.Page):
                 ft.Text("REFLEXÕES REGISTRADAS", size=12, weight=ft.FontWeight.BOLD, color="#9CA3AF"),
                 lista_diario_ui
             ], spacing=12, scroll=ft.ScrollMode.AUTO),
-            padding=10
+            padding=15, expand=True
         )
 
         # ==========================================
@@ -1187,7 +1186,7 @@ def main(page: ft.Page):
                 ft.Text("HISTÓRICO DE TREINOS EXECUTADOS", size=12, weight=ft.FontWeight.BOLD, color="#9CA3AF"),
                 lista_historico_treinos_ui
             ], spacing=12, scroll=ft.ScrollMode.AUTO),
-            padding=10
+            padding=15, expand=True
         )
 
         # ==========================================
@@ -1321,7 +1320,7 @@ def main(page: ft.Page):
                 ft.Divider(color="#1F293D", height=10),
                 conteudo_resumo
             ], spacing=12, scroll=ft.ScrollMode.AUTO),
-            padding=10
+            padding=15, expand=True
         )
 
         # ==========================================
@@ -1351,7 +1350,13 @@ def main(page: ft.Page):
             ]
         )
 
-        page.add(ft.Column([painel_gamificacao, body, navegacao], expand=True, spacing=0))
+        page.add(
+            ft.Column([
+                painel_gamificacao, 
+                body, 
+                navegacao
+            ], expand=True, spacing=0)
+        )
 
         # Inicializações seguras
         try: atualizar_header_xp()
