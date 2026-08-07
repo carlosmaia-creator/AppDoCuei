@@ -220,11 +220,11 @@ def main(page: ft.Page):
                             ft.Column([
                                 ft.Row([
                                     ft.Text(f"• {at_o}", size=13, weight=ft.FontWeight.BOLD, color="#FFFFFF", expand=True),
-                                    ft.IconButton(icon=ft.Icons.DELETE, icon_color="#EF4444", icon_size=18, tooltip="Apagar tarefa", on_click=deletar_item)
+                                    ft.IconButton(icon=ft.icons.DELETE, icon_color="#EF4444", icon_size=18, tooltip="Apagar tarefa", on_click=deletar_item)
                                 ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
                                 ft.Row([
                                     tf_hor_edit, tf_desc_edit,
-                                    ft.IconButton(icon=ft.Icons.SAVE, icon_color="#10B981", icon_size=20, tooltip="Salvar alteração", on_click=salvar_item)
+                                    ft.IconButton(icon=ft.icons.SAVE, icon_color="#10B981", icon_size=20, tooltip="Salvar alteração", on_click=salvar_item)
                                 ], spacing=6)
                             ]), glow_color="#3B82F6"
                         )
@@ -240,7 +240,7 @@ def main(page: ft.Page):
                     content=ft.Column([
                         ft.Row([
                             ft.Text(f"📌 TAREFAS DE {dia_nome.upper()}", size=14, weight=ft.FontWeight.BOLD, color="#00F2FE"),
-                            ft.IconButton(icon=ft.Icons.CLOSE, icon_color="#9CA3AF", on_click=fechar_bs)
+                            ft.IconButton(icon=ft.icons.CLOSE, icon_color="#9CA3AF", on_click=fechar_bs)
                         ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
                         ft.Divider(color="#1F293D", height=10),
                         conteudo_modal
@@ -413,7 +413,7 @@ def main(page: ft.Page):
                                 ft.Row([
                                     ft.Container(content=ft.Text(hor, size=10, color="#000000", weight=ft.FontWeight.BOLD), bgcolor=cor_card, padding=4, border_radius=4),
                                     ft.Text(ativ, size=14, weight=ft.FontWeight.BOLD, color="#FFFFFF", expand=True),
-                                    ft.IconButton(icon=ft.Icons.DELETE, icon_color="#EF4444", tooltip="Apagar", on_click=deletar_rotina)
+                                    ft.IconButton(icon=ft.icons.DELETE, icon_color="#EF4444", tooltip="Apagar", on_click=deletar_rotina)
                                 ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
                                 ft.Text(f"Detalhes: {desc}", size=11, color="#9CA3AF") if desc else ft.Container(),
                                 alerta_ui,
@@ -515,7 +515,7 @@ def main(page: ft.Page):
                                     ft.Text(ativ, size=11, color="#9CA3AF")
                                 ], expand=True),
                                 ft.Text(imp, size=11, color=cor_gap, weight=ft.FontWeight.BOLD),
-                                ft.IconButton(icon=ft.Icons.DELETE, icon_color="#EF4444", tooltip="Apagar Gap", on_click=deletar_gap)
+                                ft.IconButton(icon=ft.icons.DELETE, icon_color="#EF4444", tooltip="Apagar Gap", on_click=deletar_gap)
                             ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN), glow_color=cor_gap
                         )
                     )
@@ -594,7 +594,7 @@ def main(page: ft.Page):
                                 ft.Row([
                                     ft.Text(f"Erro em: {rot}", size=13, weight=ft.FontWeight.BOLD, color=cor_borda),
                                     ft.Text(dt or "", size=10, color="#6B7280"),
-                                    ft.IconButton(icon=ft.Icons.DELETE, icon_color="#EF4444", tooltip="Apagar", on_click=deletar_excecao)
+                                    ft.IconButton(icon=ft.icons.DELETE, icon_color="#EF4444", tooltip="Apagar", on_click=deletar_excecao)
                                 ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
                                 ft.Text(f"Classificação: {t_exc} " + (f"(Realizado: {h_real})" if h_real else ""), size=11, color="#FFFFFF", weight=ft.FontWeight.BOLD),
                                 ft.Text(f"Motivo: {mot}", size=11, color="#9CA3AF"),
@@ -754,7 +754,7 @@ def main(page: ft.Page):
                                 ft.Row([
                                     ft.Text(tip, size=13, weight=ft.FontWeight.BOLD, color="#10B981"),
                                     ft.Text(dt or "", size=10, color="#6B7280"),
-                                    ft.IconButton(icon=ft.Icons.DELETE, icon_color="#EF4444", tooltip="Apagar", on_click=deletar_refeicao)
+                                    ft.IconButton(icon=ft.icons.DELETE, icon_color="#EF4444", tooltip="Apagar", on_click=deletar_refeicao)
                                 ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
                                 ft.Text(f"Prato: {desc}", size=11, color="#FFFFFF"),
                                 ft.Text(f"📸 {ft_nom}", size=10, color="#3B82F6") if ft_nom else ft.Container()
@@ -850,7 +850,7 @@ def main(page: ft.Page):
                                     ft.Text(cat, size=10, color="#9CA3AF")
                                 ], expand=True),
                                 ft.Text(f"{sinal} R$ {val:,.2f}", size=12, color=cor_valor, weight=ft.FontWeight.BOLD),
-                                ft.IconButton(icon=ft.Icons.DELETE, icon_color="#EF4444", tooltip="Apagar", on_click=deletar_compra)
+                                ft.IconButton(icon=ft.icons.DELETE, icon_color="#EF4444", tooltip="Apagar", on_click=deletar_compra)
                             ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN), glow_color=cor_valor
                         )
                     )
@@ -966,7 +966,7 @@ def main(page: ft.Page):
                             ft.Column([
                                 ft.Row([
                                     ft.Text(f"Registro em: {dt or ''}", size=12, weight=ft.FontWeight.BOLD, color="#EC4899"),
-                                    ft.IconButton(icon=ft.Icons.DELETE, icon_color="#EF4444", tooltip="Apagar", on_click=deletar_diario)
+                                    ft.IconButton(icon=ft.icons.DELETE, icon_color="#EF4444", tooltip="Apagar", on_click=deletar_diario)
                                 ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
                                 ft.Text(f"🏆 Vitória: {vit}", size=11, color="#FFFFFF") if vit else ft.Container(),
                                 ft.Text(f"💡 Lição: {lic}", size=11, color="#00F2FE") if lic else ft.Container(),
@@ -1051,7 +1051,7 @@ def main(page: ft.Page):
                         ft.Column([
                             ft.Row([
                                 ft.Text(f"📋 PRÉVIA DA FICHA: {nome_t.upper()}", size=12, weight=ft.FontWeight.BOLD, color="#FF0055"),
-                                ft.IconButton(icon=ft.Icons.DELETE, icon_color="#EF4444", tooltip="Apagar Ficha Master", on_click=deletar_treino_master_btn)
+                                ft.IconButton(icon=ft.icons.DELETE, icon_color="#EF4444", tooltip="Apagar Ficha Master", on_click=deletar_treino_master_btn)
                             ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
                             ft.Text(f"Exercícios inclusos nesta sessão:\n{lista_ex_fmt}", size=11, color="#FFFFFF"),
                             ft.ElevatedButton("▶️ INICIAR TREINO AGORA", bgcolor="#10B981", color="#000000", height=45, on_click=iniciar_sessao_treino)
@@ -1161,7 +1161,7 @@ def main(page: ft.Page):
                                 ft.Row([
                                     ft.Text(f"🏋️ {nm}", size=13, weight=ft.FontWeight.BOLD, color="#FF0055"),
                                     ft.Text(f"⏱️ {dur} • {dt}", size=10, color="#6B7280"),
-                                    ft.IconButton(icon=ft.Icons.DELETE, icon_color="#EF4444", tooltip="Apagar", on_click=deletar_treino)
+                                    ft.IconButton(icon=ft.icons.DELETE, icon_color="#EF4444", tooltip="Apagar", on_click=deletar_treino)
                                 ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
                                 ft.Text(det, size=11, color="#FFFFFF")
                             ]), glow_color="#FF0055"
@@ -1340,14 +1340,14 @@ def main(page: ft.Page):
             indicator_color="#00F2FE",
             on_change=navegar,
             destinations=[
-                ft.NavigationDestination(icon=ft.Icons.CHECK_BOX, label="Rotina"),
-                ft.NavigationDestination(icon=ft.Icons.TIMELAPSE, label="Gaps"),
-                ft.NavigationDestination(icon=ft.Icons.REPORT_PROBLEM, label="Falhas"),
-                ft.NavigationDestination(icon=ft.Icons.FITNESS_CENTER, label="Saúde"),
-                ft.NavigationDestination(icon=ft.Icons.ACCOUNT_BALANCE_WALLET, label="Cofre"),
-                ft.NavigationDestination(icon=ft.Icons.AUTO_STORIES, label="Diário"),
-                ft.NavigationDestination(icon=ft.Icons.SPORTS_GYMNASTICS, label="Treino"),
-                ft.NavigationDestination(icon=ft.Icons.PIE_CHART, label="Visão"),
+                ft.NavigationDestination(icon=ft.icons.CHECK_BOX, label="Rotina"),
+                ft.NavigationDestination(icon=ft.icons.TIMELAPSE, label="Gaps"),
+                ft.NavigationDestination(icon=ft.icons.REPORT_PROBLEM, label="Falhas"),
+                ft.NavigationDestination(icon=ft.icons.FITNESS_CENTER, label="Saúde"),
+                ft.NavigationDestination(icon=ft.icons.ACCOUNT_BALANCE_WALLET, label="Cofre"),
+                ft.NavigationDestination(icon=ft.icons.AUTO_STORIES, label="Diário"),
+                ft.NavigationDestination(icon=ft.icons.SPORTS_GYMNASTICS, label="Treino"),
+                ft.NavigationDestination(icon=ft.icons.PIE_CHART, label="Visão"),
             ]
         )
 
