@@ -6,7 +6,16 @@ from datetime import date, datetime, timedelta
 # ==========================================
 # CAMINHO ABSOLUTO DO BANCO DE DADOS
 # ==========================================
-PASTA_SEGURA = os.path.expanduser("~")
+try:
+    # Tenta usar a pasta do usuário (Funciona perfeitamente no PC)
+    PASTA_SEGURA = os.path.expanduser("~")
+    teste = os.path.join(PASTA_SEGURA, ".teste_gravacao")
+    with open(teste, "w") as f: pass
+    os.remove(teste)
+except Exception:
+    # Se o Android bloquear (o que sempre acontece), usamos a pasta segura do app
+    PASTA_SEGURA = os.getcwd()
+
 DB_PATH = os.path.join(PASTA_SEGURA, "life_os.db")
 
 def init_db():
