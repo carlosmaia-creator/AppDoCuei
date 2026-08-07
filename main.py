@@ -18,37 +18,40 @@ except Exception:
 DB_PATH = os.path.join(PASTA_SEGURA, "life_os.db")
 
 def init_db():
-    conn = sqlite3.connect(DB_PATH)
-    c = conn.cursor()
-    
-    c.execute("""CREATE TABLE IF NOT EXISTS rotina_master (id INTEGER PRIMARY KEY AUTOINCREMENT, dia_semana TEXT, horario TEXT, atividade TEXT, descricao TEXT)""")
-    c.execute("""CREATE TABLE IF NOT EXISTS execucao_rotina (id INTEGER PRIMARY KEY AUTOINCREMENT, rotina_id INTEGER, data TEXT, cumprido INTEGER DEFAULT 0, motivo TEXT, UNIQUE(rotina_id, data))""")
-    c.execute("""CREATE TABLE IF NOT EXISTS ciclo_dia (data TEXT PRIMARY KEY, hora_inicio TEXT, hora_fim TEXT, status TEXT)""")
-    c.execute("""CREATE TABLE IF NOT EXISTS gaps (id INTEGER PRIMARY KEY AUTOINCREMENT, horario TEXT, atividade TEXT, impacto TEXT, data TEXT)""")
-    
-    c.execute("""CREATE TABLE IF NOT EXISTS excecoes (id INTEGER PRIMARY KEY AUTOINCREMENT, rotina TEXT, motivo TEXT, solucao TEXT, data TEXT, tipo_excecao TEXT, horario_real TEXT)""")
     try:
-        c.execute("ALTER TABLE excecoes ADD COLUMN tipo_excecao TEXT DEFAULT '❌ Não Feito / Ignorado'")
-        c.execute("ALTER TABLE excecoes ADD COLUMN horario_real TEXT DEFAULT ''")
-    except sqlite3.OperationalError: pass
+        conn = sqlite3.connect(DB_PATH)
+        c = conn.cursor()
+        
+        c.execute("""CREATE TABLE IF NOT EXISTS rotina_master (id INTEGER PRIMARY KEY AUTOINCREMENT, dia_semana TEXT, horario TEXT, atividade TEXT, descricao TEXT)""")
+        c.execute("""CREATE TABLE IF NOT EXISTS execucao_rotina (id INTEGER PRIMARY KEY AUTOINCREMENT, rotina_id INTEGER, data TEXT, cumprido INTEGER DEFAULT 0, motivo TEXT, UNIQUE(rotina_id, data))""")
+        c.execute("""CREATE TABLE IF NOT EXISTS ciclo_dia (data TEXT PRIMARY KEY, hora_inicio TEXT, hora_fim TEXT, status TEXT)""")
+        c.execute("""CREATE TABLE IF NOT EXISTS gaps (id INTEGER PRIMARY KEY AUTOINCREMENT, horario TEXT, atividade TEXT, impacto TEXT, data TEXT)""")
+        
+        c.execute("""CREATE TABLE IF NOT EXISTS excecoes (id INTEGER PRIMARY KEY AUTOINCREMENT, rotina TEXT, motivo TEXT, solucao TEXT, data TEXT, tipo_excecao TEXT, horario_real TEXT)""")
+        try:
+            c.execute("ALTER TABLE excecoes ADD COLUMN tipo_excecao TEXT DEFAULT '❌ Não Feito / Ignorado'")
+            c.execute("ALTER TABLE excecoes ADD COLUMN horario_real TEXT DEFAULT ''")
+        except sqlite3.OperationalError: pass
 
-    c.execute("""CREATE TABLE IF NOT EXISTS refeicoes (id INTEGER PRIMARY KEY AUTOINCREMENT, tipo TEXT, descricao TEXT, foto_nome TEXT, data TEXT)""")
-    c.execute("""CREATE TABLE IF NOT EXISTS agua_diaria (data TEXT PRIMARY KEY, copos INTEGER)""")
-    c.execute("""CREATE TABLE IF NOT EXISTS financas (id INTEGER PRIMARY KEY AUTOINCREMENT, descricao TEXT, valor REAL, categoria TEXT, data TEXT, tipo TEXT)""")
-    try:
-        c.execute("ALTER TABLE financas ADD COLUMN tipo TEXT DEFAULT 'saida'")
-    except sqlite3.OperationalError: pass
+        c.execute("""CREATE TABLE IF NOT EXISTS refeicoes (id INTEGER PRIMARY KEY AUTOINCREMENT, tipo TEXT, descricao TEXT, foto_nome TEXT, data TEXT)""")
+        c.execute("""CREATE TABLE IF NOT EXISTS agua_diaria (data TEXT PRIMARY KEY, copos INTEGER)""")
+        c.execute("""CREATE TABLE IF NOT EXISTS financas (id INTEGER PRIMARY KEY AUTOINCREMENT, descricao TEXT, valor REAL, categoria TEXT, data TEXT, tipo TEXT)""")
+        try:
+            c.execute("ALTER TABLE financas ADD COLUMN tipo TEXT DEFAULT 'saida'")
+        except sqlite3.OperationalError: pass
 
-    c.execute("""CREATE TABLE IF NOT EXISTS config_financas (id INTEGER PRIMARY KEY, salario REAL, reserva REAL)""")
-    c.execute("""CREATE TABLE IF NOT EXISTS diario (id INTEGER PRIMARY KEY AUTOINCREMENT, vitoria TEXT, licao TEXT, desabafo TEXT, data TEXT)""")
-    c.execute("""CREATE TABLE IF NOT EXISTS treinos_master (id INTEGER PRIMARY KEY AUTOINCREMENT, nome_treino TEXT, exercicios TEXT)""")
-    c.execute("""CREATE TABLE IF NOT EXISTS historico_treinos (id INTEGER PRIMARY KEY AUTOINCREMENT, nome_treino TEXT, duracao_min TEXT, detalhes_cargas TEXT, data TEXT)""")
-    
-    c.execute("""CREATE TABLE IF NOT EXISTS gamificacao (id INTEGER PRIMARY KEY, xp INTEGER)""")
-    c.execute("INSERT OR IGNORE INTO gamificacao (id, xp) VALUES (1, 0)")
+        c.execute("""CREATE TABLE IF NOT EXISTS config_financas (id INTEGER PRIMARY KEY, salario REAL, reserva REAL)""")
+        c.execute("""CREATE TABLE IF NOT EXISTS diario (id INTEGER PRIMARY KEY AUTOINCREMENT, vitoria TEXT, licao TEXT, desabafo TEXT, data TEXT)""")
+        c.execute("""CREATE TABLE IF NOT EXISTS treinos_master (id INTEGER PRIMARY KEY AUTOINCREMENT, nome_treino TEXT, exercicios TEXT)""")
+        c.execute("""CREATE TABLE IF NOT EXISTS historico_treinos (id INTEGER PRIMARY KEY AUTOINCREMENT, nome_treino TEXT, duracao_min TEXT, detalhes_cargas TEXT, data TEXT)""")
+        
+        c.execute("""CREATE TABLE IF NOT EXISTS gamificacao (id INTEGER PRIMARY KEY, xp INTEGER)""")
+        c.execute("INSERT OR IGNORE INTO gamificacao (id, xp) VALUES (1, 0)")
 
-    conn.commit()
-    conn.close()
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"Erro no init_db: {e}")
 
 init_db()
 
@@ -96,19 +99,24 @@ def main(page: ft.Page):
     lbl_xp_text = ft.Text("0/100 XP", size=10, color="#9CA3AF")
 
     def get_xp():
-        conn = sqlite3.connect(DB_PATH)
-        c = conn.cursor()
-        c.execute("SELECT xp FROM gamificacao WHERE id = 1")
-        val = c.fetchone()[0]
-        conn.close()
-        return val
+        try:
+            conn = sqlite3.connect(DB_PATH)
+            c = conn.cursor()
+            c.execute("SELECT xp FROM gamificacao WHERE id = 1")
+            row = c.fetchone()
+            conn.close()
+            return row[0] if row else 0
+        except:
+            return 0
 
     def set_xp(val):
-        conn = sqlite3.connect(DB_PATH)
-        c = conn.cursor()
-        c.execute("UPDATE gamificacao SET xp = ? WHERE id = 1", (val,))
-        conn.commit()
-        conn.close()
+        try:
+            conn = sqlite3.connect(DB_PATH)
+            c = conn.cursor()
+            c.execute("UPDATE gamificacao SET xp = ? WHERE id = 1", (val,))
+            conn.commit()
+            conn.close()
+        except: pass
 
     def atualizar_header_xp():
         xp_total = get_xp()
@@ -244,202 +252,205 @@ def main(page: ft.Page):
         recarregar_modal()
 
     def carregar_rotina_do_dia():
-        painel_status_dia.controls.clear()
-        lista_rotina_hoje_ui.controls.clear()
-        lista_outros_dias_ui.controls.clear()
-        dd_excecoes_rotina.options.clear()
+        try:
+            painel_status_dia.controls.clear()
+            lista_rotina_hoje_ui.controls.clear()
+            lista_outros_dias_ui.controls.clear()
+            dd_excecoes_rotina.options.clear()
 
-        conn = sqlite3.connect(DB_PATH)
-        c = conn.cursor()
+            conn = sqlite3.connect(DB_PATH)
+            c = conn.cursor()
 
-        c.execute("SELECT hora_inicio, hora_fim, status FROM ciclo_dia WHERE data = ?", (data_formatada,))
-        ciclo = c.fetchone()
+            c.execute("SELECT hora_inicio, hora_fim, status FROM ciclo_dia WHERE data = ?", (data_formatada,))
+            ciclo = c.fetchone()
 
-        status_ciclo = ciclo[2] if ciclo else "NAO_INICIADO"
-        h_ini = ciclo[0] if ciclo else "--:--"
-        h_fim = ciclo[1] if ciclo else "--:--"
+            status_ciclo = ciclo[2] if ciclo else "NAO_INICIADO"
+            h_ini = ciclo[0] if ciclo else "--:--"
+            h_fim = ciclo[1] if ciclo else "--:--"
 
-        def iniciar_dia_action(ev):
-            now_str = datetime.now().strftime("%H:%M")
-            cn = sqlite3.connect(DB_PATH)
-            cur = cn.cursor()
-            cur.execute("INSERT OR REPLACE INTO ciclo_dia (data, hora_inicio, status) VALUES (?, ?, ?)",
-                        (data_formatada, now_str, "EM_ANDAMENTO"))
-            cn.commit()
-            cn.close()
-            carregar_rotina_do_dia()
+            def iniciar_dia_action(ev):
+                now_str = datetime.now().strftime("%H:%M")
+                cn = sqlite3.connect(DB_PATH)
+                cur = cn.cursor()
+                cur.execute("INSERT OR REPLACE INTO ciclo_dia (data, hora_inicio, status) VALUES (?, ?, ?)",
+                            (data_formatada, now_str, "EM_ANDAMENTO"))
+                cn.commit()
+                cn.close()
+                carregar_rotina_do_dia()
 
-        def concluir_dia_action(ev):
-            now_str = datetime.now().strftime("%H:%M")
-            cn = sqlite3.connect(DB_PATH)
-            cur = cn.cursor()
-            cur.execute("UPDATE ciclo_dia SET hora_fim = ?, status = ? WHERE data = ?",
-                        (now_str, "CONCLUIDO", data_formatada))
-            cn.commit()
-            cn.close()
-            add_xp(50) 
-            carregar_rotina_do_dia()
+            def concluir_dia_action(ev):
+                now_str = datetime.now().strftime("%H:%M")
+                cn = sqlite3.connect(DB_PATH)
+                cur = cn.cursor()
+                cur.execute("UPDATE ciclo_dia SET hora_fim = ?, status = ? WHERE data = ?",
+                            (now_str, "CONCLUIDO", data_formatada))
+                cn.commit()
+                cn.close()
+                add_xp(50) 
+                carregar_rotina_do_dia()
 
-        def desfazer_ciclo_action(ev):
-            cn = sqlite3.connect(DB_PATH)
-            cur = cn.cursor()
-            if status_ciclo == "CONCLUIDO":
-                cur.execute("UPDATE ciclo_dia SET status = ? WHERE data = ?", ("EM_ANDAMENTO", data_formatada))
-            else:
-                cur.execute("DELETE FROM ciclo_dia WHERE data = ?", (data_formatada,))
-            cn.commit()
-            cn.close()
-            carregar_rotina_do_dia()
-
-        if status_ciclo == "NAO_INICIADO":
-            painel_status_dia.controls.append(
-                card_premium(
-                    ft.Column([
-                        ft.Text(f"📅 HOJE É: {dia_semana_hoje.upper()} ({data_formatada})", size=13, weight=ft.FontWeight.BOLD, color="#00F2FE"),
-                        ft.Text("Seu dia ainda não foi iniciado. Clique abaixo para começar!", size=11, color="#9CA3AF"),
-                        ft.ElevatedButton("☀️ INICIAR O DIA", bgcolor="#00F2FE", color="#000000", height=45, on_click=iniciar_dia_action)
-                    ]), glow_color="#00F2FE"
-                )
-            )
-        elif status_ciclo == "EM_ANDAMENTO":
-            painel_status_dia.controls.append(
-                card_premium(
-                    ft.Column([
-                        ft.Row([
-                            ft.Text(f"☀️ DIA EM ANDAMENTO ({dia_semana_hoje})", size=12, weight=ft.FontWeight.BOLD, color="#10B981"),
-                            ft.Text(f"Iniciado às: {h_ini}", size=11, color="#9CA3AF")
-                        ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-                        ft.Row([
-                            ft.ElevatedButton("🌙 CONCLUIR O DIA", bgcolor="#8B5CF6", color="#FFFFFF", height=40, expand=True, on_click=concluir_dia_action),
-                            ft.ElevatedButton("↩️ Cancelar Início", bgcolor="#1F293D", color="#EF4444", height=40, on_click=desfazer_ciclo_action)
-                        ], spacing=8)
-                    ]), glow_color="#10B981"
-                )
-            )
-        else:
-            painel_status_dia.controls.append(
-                card_premium(
-                    ft.Column([
-                        ft.Row([
-                            ft.Text(f"🌙 DIA CONCLUÍDO! ({dia_semana_hoje})", size=13, weight=ft.FontWeight.BOLD, color="#EC4899"),
-                            ft.Text(f"Início: {h_ini} | Fim: {h_fim}", size=10, color="#9CA3AF")
-                        ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-                        ft.ElevatedButton("↩️ Retomar Dia (Desfazer Conclusão)", bgcolor="#1F293D", color="#00F2FE", height=38, on_click=desfazer_ciclo_action)
-                    ]), glow_color="#EC4899"
-                )
-            )
-
-        c.execute("SELECT id, horario, atividade, descricao FROM rotina_master WHERE dia_semana = ?", (dia_semana_hoje,))
-        rotinas_hoje = c.fetchall()
-
-        if not rotinas_hoje:
-            lista_rotina_hoje_ui.controls.append(ft.Text(f"Nenhuma rotina cadastrada para {dia_semana_hoje}. Cadastre abaixo!", size=11, color="#9CA3AF"))
-
-        for id_rot, hor, ativ, desc in rotinas_hoje:
-            dd_excecoes_rotina.options.append(ft.dropdown.Option(ativ))
-            
-            c.execute("SELECT cumprido, motivo FROM execucao_rotina WHERE rotina_id = ? AND data = ?", (id_rot, data_hoje_iso))
-            exec_hoje = c.fetchone()
-            cumprido_hoje = bool(exec_hoje[0]) if exec_hoje else False
-            motivo_hoje = exec_hoje[1] if exec_hoje else ""
-
-            c.execute("SELECT tipo_excecao, horario_real FROM excecoes WHERE rotina = ? AND data = ?", (ativ, data_formatada))
-            exc_registrada = c.fetchone()
-
-            alerta_ui = ft.Container()
-            cor_card = "#00F2FE"
-            if exc_registrada:
-                t_exc, h_real = exc_registrada
-                if "Atraso" in str(t_exc):
-                    cor_card = "#F59E0B"
-                    alerta_ui = ft.Container(
-                        content=ft.Text(f"⚠️ {t_exc} | Real: {h_real}", size=10, weight=ft.FontWeight.BOLD, color="#F59E0B"),
-                        padding=5, bgcolor="#451A03", border_radius=5
-                    )
+            def desfazer_ciclo_action(ev):
+                cn = sqlite3.connect(DB_PATH)
+                cur = cn.cursor()
+                if status_ciclo == "CONCLUIDO":
+                    cur.execute("UPDATE ciclo_dia SET status = ? WHERE data = ?", ("EM_ANDAMENTO", data_formatada))
                 else:
-                    cor_card = "#EF4444"
-                    alerta_ui = ft.Container(
-                        content=ft.Text(f"❌ {t_exc}", size=10, weight=ft.FontWeight.BOLD, color="#EF4444"),
-                        padding=5, bgcolor="#450a0a", border_radius=5
-                    )
-
-            if cumprido_hoje and cor_card == "#00F2FE":
-                cor_card = "#10B981"
-
-            txt_motivo = ft.TextField(value=motivo_hoje, hint_text="Observação Rápida", border_color="#1F293D", color="#FFFFFF", text_size=11)
-
-            def deletar_rotina(e, id_item=id_rot):
-                cn = sqlite3.connect(DB_PATH)
-                cur = cn.cursor()
-                cur.execute("DELETE FROM rotina_master WHERE id = ?", (id_item,))
-                cur.execute("DELETE FROM execucao_rotina WHERE rotina_id = ?", (id_item,))
+                    cur.execute("DELETE FROM ciclo_dia WHERE data = ?", (data_formatada,))
                 cn.commit()
                 cn.close()
                 carregar_rotina_do_dia()
 
-            def salvar_motivo(e, id_item=id_rot, campo_m=txt_motivo):
-                cn = sqlite3.connect(DB_PATH)
-                cur = cn.cursor()
-                cur.execute("INSERT INTO execucao_rotina (rotina_id, data, motivo) VALUES (?, ?, ?) ON CONFLICT(rotina_id, data) DO UPDATE SET motivo = excluded.motivo", (id_item, data_hoje_iso, campo_m.value))
-                cn.commit()
-                cn.close()
-
-            def alternar_check(e, id_item=id_rot):
-                val = 1 if e.control.value else 0
-                if val == 1: add_xp(10)
-                else: add_xp(-10)
-
-                cn = sqlite3.connect(DB_PATH)
-                cur = cn.cursor()
-                cur.execute("INSERT INTO execucao_rotina (rotina_id, data, cumprido) VALUES (?, ?, ?) ON CONFLICT(rotina_id, data) DO UPDATE SET cumprido = excluded.cumprido", (id_item, data_hoje_iso, val))
-                cn.commit()
-                cn.close()
-                carregar_rotina_do_dia()
-
-            lista_rotina_hoje_ui.controls.append(
-                card_premium(
-                    ft.Column([
-                        ft.Row([
-                            ft.Container(content=ft.Text(hor, size=10, color="#000000", weight=ft.FontWeight.BOLD), bgcolor=cor_card, padding=4, border_radius=4),
-                            ft.Text(ativ, size=14, weight=ft.FontWeight.BOLD, color="#FFFFFF", expand=True),
-                            ft.IconButton(icon=ft.Icons.DELETE, icon_color="#EF4444", tooltip="Apagar", on_click=deletar_rotina)
-                        ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-                        ft.Text(f"Detalhes: {desc}", size=11, color="#9CA3AF") if desc else ft.Container(),
-                        alerta_ui,
-                        txt_motivo,
-                        ft.Row([
-                            ft.ElevatedButton("Salvar Obs", bgcolor="#1F293D", color="#FFFFFF", height=30, on_click=salvar_motivo),
-                            ft.Checkbox(label="Concluído", value=cumprido_hoje, on_change=alternar_check, fill_color="#10B981")
-                        ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN)
-                    ]), glow_color=cor_card
-                )
-            )
-
-        for d_nome in dias_pt:
-            if d_nome != dia_semana_hoje:
-                c.execute("SELECT COUNT(*) FROM rotina_master WHERE dia_semana = ?", (d_nome,))
-                qtd_tarefas = c.fetchone()[0]
-
-                def criar_evento_click(nome_d=d_nome):
-                    return lambda e: abrir_modal_dia(nome_d)
-
-                lista_outros_dias_ui.controls.append(
+            if status_ciclo == "NAO_INICIADO":
+                painel_status_dia.controls.append(
                     card_premium(
-                        ft.Container(
-                            content=ft.Row([
-                                ft.Column([
-                                    ft.Text(f"📌 {d_nome.upper()}", size=12, weight=ft.FontWeight.BOLD, color="#FFFFFF"),
-                                    ft.Text(f"{qtd_tarefas} tarefa(s) cadastrada(s)", size=10, color="#9CA3AF")
-                                ], expand=True),
-                                ft.Text("Gerenciar 🔍", size=11, color="#00F2FE", weight=ft.FontWeight.BOLD)
+                        ft.Column([
+                            ft.Text(f"📅 HOJE É: {dia_semana_hoje.upper()} ({data_formatada})", size=13, weight=ft.FontWeight.BOLD, color="#00F2FE"),
+                            ft.Text("Seu dia ainda não foi iniciado. Clique abaixo para começar!", size=11, color="#9CA3AF"),
+                            ft.ElevatedButton("☀️ INICIAR O DIA", bgcolor="#00F2FE", color="#000000", height=45, on_click=iniciar_dia_action)
+                        ]), glow_color="#00F2FE"
+                    )
+                )
+            elif status_ciclo == "EM_ANDAMENTO":
+                painel_status_dia.controls.append(
+                    card_premium(
+                        ft.Column([
+                            ft.Row([
+                                ft.Text(f"☀️ DIA EM ANDAMENTO ({dia_semana_hoje})", size=12, weight=ft.FontWeight.BOLD, color="#10B981"),
+                                ft.Text(f"Iniciado às: {h_ini}", size=11, color="#9CA3AF")
                             ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-                            on_click=criar_evento_click(d_nome)
-                        ), glow_color="#3B82F6"
+                            ft.Row([
+                                ft.ElevatedButton("🌙 CONCLUIR O DIA", bgcolor="#8B5CF6", color="#FFFFFF", height=40, expand=True, on_click=concluir_dia_action),
+                                ft.ElevatedButton("↩️ Cancelar Início", bgcolor="#1F293D", color="#EF4444", height=40, on_click=desfazer_ciclo_action)
+                            ], spacing=8)
+                        ]), glow_color="#10B981"
+                    )
+                )
+            else:
+                painel_status_dia.controls.append(
+                    card_premium(
+                        ft.Column([
+                            ft.Row([
+                                ft.Text(f"🌙 DIA CONCLUÍDO! ({dia_semana_hoje})", size=13, weight=ft.FontWeight.BOLD, color="#EC4899"),
+                                ft.Text(f"Início: {h_ini} | Fim: {h_fim}", size=10, color="#9CA3AF")
+                            ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+                            ft.ElevatedButton("↩️ Retomar Dia (Desfazer Conclusão)", bgcolor="#1F293D", color="#00F2FE", height=38, on_click=desfazer_ciclo_action)
+                        ]), glow_color="#EC4899"
                     )
                 )
 
-        conn.close()
-        page.update()
+            c.execute("SELECT id, horario, atividade, descricao FROM rotina_master WHERE dia_semana = ?", (dia_semana_hoje,))
+            rotinas_hoje = c.fetchall()
+
+            if not rotinas_hoje:
+                lista_rotina_hoje_ui.controls.append(ft.Text(f"Nenhuma rotina cadastrada para {dia_semana_hoje}. Cadastre abaixo!", size=11, color="#9CA3AF"))
+
+            for id_rot, hor, ativ, desc in rotinas_hoje:
+                dd_excecoes_rotina.options.append(ft.dropdown.Option(ativ))
+                
+                c.execute("SELECT cumprido, motivo FROM execucao_rotina WHERE rotina_id = ? AND data = ?", (id_rot, data_hoje_iso))
+                exec_hoje = c.fetchone()
+                cumprido_hoje = bool(exec_hoje[0]) if exec_hoje else False
+                motivo_hoje = exec_hoje[1] if exec_hoje else ""
+
+                c.execute("SELECT tipo_excecao, horario_real FROM excecoes WHERE rotina = ? AND data = ?", (ativ, data_formatada))
+                exc_registrada = c.fetchone()
+
+                alerta_ui = ft.Container()
+                cor_card = "#00F2FE"
+                if exc_registrada:
+                    t_exc, h_real = exc_registrada
+                    if "Atraso" in str(t_exc):
+                        cor_card = "#F59E0B"
+                        alerta_ui = ft.Container(
+                            content=ft.Text(f"⚠️ {t_exc} | Real: {h_real}", size=10, weight=ft.FontWeight.BOLD, color="#F59E0B"),
+                            padding=5, bgcolor="#451A03", border_radius=5
+                        )
+                    else:
+                        cor_card = "#EF4444"
+                        alerta_ui = ft.Container(
+                            content=ft.Text(f"❌ {t_exc}", size=10, weight=ft.FontWeight.BOLD, color="#EF4444"),
+                            padding=5, bgcolor="#450a0a", border_radius=5
+                        )
+
+                if cumprido_hoje and cor_card == "#00F2FE":
+                    cor_card = "#10B981"
+
+                txt_motivo = ft.TextField(value=motivo_hoje, hint_text="Observação Rápida", border_color="#1F293D", color="#FFFFFF", text_size=11)
+
+                def deletar_rotina(e, id_item=id_rot):
+                    cn = sqlite3.connect(DB_PATH)
+                    cur = cn.cursor()
+                    cur.execute("DELETE FROM rotina_master WHERE id = ?", (id_item,))
+                    cur.execute("DELETE FROM execucao_rotina WHERE rotina_id = ?", (id_item,))
+                    cn.commit()
+                    cn.close()
+                    carregar_rotina_do_dia()
+
+                def salvar_motivo(e, id_item=id_rot, campo_m=txt_motivo):
+                    cn = sqlite3.connect(DB_PATH)
+                    cur = cn.cursor()
+                    cur.execute("INSERT INTO execucao_rotina (rotina_id, data, motivo) VALUES (?, ?, ?) ON CONFLICT(rotina_id, data) DO UPDATE SET motivo = excluded.motivo", (id_item, data_hoje_iso, campo_m.value))
+                    cn.commit()
+                    cn.close()
+
+                def alternar_check(e, id_item=id_rot):
+                    val = 1 if e.control.value else 0
+                    if val == 1: add_xp(10)
+                    else: add_xp(-10)
+
+                    cn = sqlite3.connect(DB_PATH)
+                    cur = cn.cursor()
+                    cur.execute("INSERT INTO execucao_rotina (rotina_id, data, cumprido) VALUES (?, ?, ?) ON CONFLICT(rotina_id, data) DO UPDATE SET cumprido = excluded.cumprido", (id_item, data_hoje_iso, val))
+                    cn.commit()
+                    cn.close()
+                    carregar_rotina_do_dia()
+
+                lista_rotina_hoje_ui.controls.append(
+                    card_premium(
+                        ft.Column([
+                            ft.Row([
+                                ft.Container(content=ft.Text(hor, size=10, color="#000000", weight=ft.FontWeight.BOLD), bgcolor=cor_card, padding=4, border_radius=4),
+                                ft.Text(ativ, size=14, weight=ft.FontWeight.BOLD, color="#FFFFFF", expand=True),
+                                ft.IconButton(icon=ft.Icons.DELETE, icon_color="#EF4444", tooltip="Apagar", on_click=deletar_rotina)
+                            ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+                            ft.Text(f"Detalhes: {desc}", size=11, color="#9CA3AF") if desc else ft.Container(),
+                            alerta_ui,
+                            txt_motivo,
+                            ft.Row([
+                                ft.ElevatedButton("Salvar Obs", bgcolor="#1F293D", color="#FFFFFF", height=30, on_click=salvar_motivo),
+                                ft.Checkbox(label="Concluído", value=cumprido_hoje, on_change=alternar_check, fill_color="#10B981")
+                            ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN)
+                        ]), glow_color=cor_card
+                    )
+                )
+
+            for d_nome in dias_pt:
+                if d_nome != dia_semana_hoje:
+                    c.execute("SELECT COUNT(*) FROM rotina_master WHERE dia_semana = ?", (d_nome,))
+                    qtd_tarefas = c.fetchone()[0]
+
+                    def criar_evento_click(nome_d=d_nome):
+                        return lambda e: abrir_modal_dia(nome_d)
+
+                    lista_outros_dias_ui.controls.append(
+                        card_premium(
+                            ft.Container(
+                                content=ft.Row([
+                                    ft.Column([
+                                        ft.Text(f"📌 {d_nome.upper()}", size=12, weight=ft.FontWeight.BOLD, color="#FFFFFF"),
+                                        ft.Text(f"{qtd_tarefas} tarefa(s) cadastrada(s)", size=10, color="#9CA3AF")
+                                    ], expand=True),
+                                    ft.Text("Gerenciar 🔍", size=11, color="#00F2FE", weight=ft.FontWeight.BOLD)
+                                ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+                                on_click=criar_evento_click(d_nome)
+                            ), glow_color="#3B82F6"
+                        )
+                    )
+
+            conn.close()
+            page.update()
+        except Exception as ex:
+            print(f"Erro em carregar_rotina_do_dia: {ex}")
 
     view_rotina = ft.Container(
         content=ft.Column([
@@ -469,43 +480,45 @@ def main(page: ft.Page):
     lista_gaps_ui = ft.Column(spacing=10)
 
     def carregar_gaps():
-        lista_gaps_ui.controls.clear()
-        conn = sqlite3.connect(DB_PATH)
-        c = conn.cursor()
-        c.execute("SELECT id, horario, atividade, impacto FROM gaps ORDER BY id DESC")
-        rows = c.fetchall()
-        conn.close()
+        try:
+            lista_gaps_ui.controls.clear()
+            conn = sqlite3.connect(DB_PATH)
+            c = conn.cursor()
+            c.execute("SELECT id, horario, atividade, impacto FROM gaps ORDER BY id DESC")
+            rows = c.fetchall()
+            conn.close()
 
-        for gap_id, hor, ativ, imp in rows:
-            cor_gap = "#10B981"
-            if "🔴" in imp: cor_gap = "#EF4444"
-            elif "🟡" in imp: cor_gap = "#F59E0B"
-            elif "🔵" in imp: cor_gap = "#3B82F6"
-            elif "🏃" in imp: cor_gap = "#8B5CF6"
-            elif "🤝" in imp: cor_gap = "#EC4899"
-            elif "💼" in imp: cor_gap = "#00F2FE"
+            for gap_id, hor, ativ, imp in rows:
+                cor_gap = "#10B981"
+                if "🔴" in imp: cor_gap = "#EF4444"
+                elif "🟡" in imp: cor_gap = "#F59E0B"
+                elif "🔵" in imp: cor_gap = "#3B82F6"
+                elif "🏃" in imp: cor_gap = "#8B5CF6"
+                elif "🤝" in imp: cor_gap = "#EC4899"
+                elif "💼" in imp: cor_gap = "#00F2FE"
 
-            def deletar_gap(e, id_item=gap_id):
-                conn = sqlite3.connect(DB_PATH)
-                cur = conn.cursor()
-                cur.execute("DELETE FROM gaps WHERE id = ?", (id_item,))
-                conn.commit()
-                conn.close()
-                carregar_gaps()
+                def deletar_gap(e, id_item=gap_id):
+                    conn = sqlite3.connect(DB_PATH)
+                    cur = conn.cursor()
+                    cur.execute("DELETE FROM gaps WHERE id = ?", (id_item,))
+                    conn.commit()
+                    conn.close()
+                    carregar_gaps()
 
-            lista_gaps_ui.controls.append(
-                card_premium(
-                    ft.Row([
-                        ft.Column([
-                            ft.Text(f"Janela: {hor}", size=12, weight=ft.FontWeight.BOLD, color="#FFFFFF"),
-                            ft.Text(ativ, size=11, color="#9CA3AF")
-                        ], expand=True),
-                        ft.Text(imp, size=11, color=cor_gap, weight=ft.FontWeight.BOLD),
-                        ft.IconButton(icon=ft.Icons.DELETE, icon_color="#EF4444", tooltip="Apagar Gap", on_click=deletar_gap)
-                    ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN), glow_color=cor_gap
+                lista_gaps_ui.controls.append(
+                    card_premium(
+                        ft.Row([
+                            ft.Column([
+                                ft.Text(f"Janela: {hor}", size=12, weight=ft.FontWeight.BOLD, color="#FFFFFF"),
+                                ft.Text(ativ, size=11, color="#9CA3AF")
+                            ], expand=True),
+                            ft.Text(imp, size=11, color=cor_gap, weight=ft.FontWeight.BOLD),
+                            ft.IconButton(icon=ft.Icons.DELETE, icon_color="#EF4444", tooltip="Apagar Gap", on_click=deletar_gap)
+                        ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN), glow_color=cor_gap
+                    )
                 )
-            )
-        page.update()
+            page.update()
+        except: pass
 
     gap_horario = ft.TextField(label="Janela de Horário", hint_text="Ex: 19:00 às 19:30", border_color="#1F293D", color="#FFFFFF", label_style=ft.TextStyle(color="#9CA3AF"))
     gap_atividade = ft.TextField(label="Atividade Realizada", border_color="#1F293D", color="#FFFFFF", label_style=ft.TextStyle(color="#9CA3AF"))
@@ -553,40 +566,42 @@ def main(page: ft.Page):
     lista_excecoes_ui = ft.Column(spacing=10)
 
     def carregar_excecoes():
-        lista_excecoes_ui.controls.clear()
-        conn = sqlite3.connect(DB_PATH)
-        c = conn.cursor()
-        c.execute("SELECT id, rotina, motivo, solucao, data, tipo_excecao, horario_real FROM excecoes ORDER BY id DESC")
-        rows = c.fetchall()
-        conn.close()
+        try:
+            lista_excecoes_ui.controls.clear()
+            conn = sqlite3.connect(DB_PATH)
+            c = conn.cursor()
+            c.execute("SELECT id, rotina, motivo, solucao, data, tipo_excecao, horario_real FROM excecoes ORDER BY id DESC")
+            rows = c.fetchall()
+            conn.close()
 
-        for exc_id, rot, mot, sol, dt, t_exc, h_real in rows:
-            def deletar_excecao(e, id_item=exc_id):
-                conn = sqlite3.connect(DB_PATH)
-                cur = conn.cursor()
-                cur.execute("DELETE FROM excecoes WHERE id = ?", (id_item,))
-                conn.commit()
-                conn.close()
-                carregar_excecoes()
-                carregar_rotina_do_dia()
+            for exc_id, rot, mot, sol, dt, t_exc, h_real in rows:
+                def deletar_excecao(e, id_item=exc_id):
+                    conn = sqlite3.connect(DB_PATH)
+                    cur = conn.cursor()
+                    cur.execute("DELETE FROM excecoes WHERE id = ?", (id_item,))
+                    conn.commit()
+                    conn.close()
+                    carregar_excecoes()
+                    carregar_rotina_do_dia()
 
-            cor_borda = "#F59E0B" if "Atraso" in str(t_exc) else "#EF4444"
+                cor_borda = "#F59E0B" if "Atraso" in str(t_exc) else "#EF4444"
 
-            lista_excecoes_ui.controls.append(
-                card_premium(
-                    ft.Column([
-                        ft.Row([
-                            ft.Text(f"Erro em: {rot}", size=13, weight=ft.FontWeight.BOLD, color=cor_borda),
-                            ft.Text(dt or "", size=10, color="#6B7280"),
-                            ft.IconButton(icon=ft.Icons.DELETE, icon_color="#EF4444", tooltip="Apagar", on_click=deletar_excecao)
-                        ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-                        ft.Text(f"Classificação: {t_exc} " + (f"(Realizado: {h_real})" if h_real else ""), size=11, color="#FFFFFF", weight=ft.FontWeight.BOLD),
-                        ft.Text(f"Motivo: {mot}", size=11, color="#9CA3AF"),
-                        ft.Text(f"Plano de Ação: {sol}", size=11, color="#10B981") if sol else ft.Container()
-                    ]), glow_color=cor_borda
+                lista_excecoes_ui.controls.append(
+                    card_premium(
+                        ft.Column([
+                            ft.Row([
+                                ft.Text(f"Erro em: {rot}", size=13, weight=ft.FontWeight.BOLD, color=cor_borda),
+                                ft.Text(dt or "", size=10, color="#6B7280"),
+                                ft.IconButton(icon=ft.Icons.DELETE, icon_color="#EF4444", tooltip="Apagar", on_click=deletar_excecao)
+                            ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+                            ft.Text(f"Classificação: {t_exc} " + (f"(Realizado: {h_real})" if h_real else ""), size=11, color="#FFFFFF", weight=ft.FontWeight.BOLD),
+                            ft.Text(f"Motivo: {mot}", size=11, color="#9CA3AF"),
+                            ft.Text(f"Plano de Ação: {sol}", size=11, color="#10B981") if sol else ft.Container()
+                        ]), glow_color=cor_borda
+                    )
                 )
-            )
-        page.update()
+            page.update()
+        except: pass
 
     dd_tipo_excecao = ft.Dropdown(
         label="Tipo de Falha", border_color="#1F293D", color="#FFFFFF", label_style=ft.TextStyle(color="#9CA3AF"),
@@ -631,11 +646,14 @@ def main(page: ft.Page):
     # ==========================================
     # ABA 4: SAÚDE & CORPO
     # ==========================================
-    conn = sqlite3.connect(DB_PATH)
-    c = conn.cursor()
-    c.execute("SELECT copos FROM agua_diaria WHERE data = ?", (data_formatada,))
-    res_agua = c.fetchone()
-    conn.close()
+    res_agua = None
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        c = conn.cursor()
+        c.execute("SELECT copos FROM agua_diaria WHERE data = ?", (data_formatada,))
+        res_agua = c.fetchone()
+        conn.close()
+    except: pass
     
     contador_agua = [res_agua[0] if res_agua else 0]
     agua_meta_xp_ganho = [False]
@@ -646,11 +664,13 @@ def main(page: ft.Page):
     copos_agua = ft.Text("", size=14, weight=ft.FontWeight.BOLD, color="#FFFFFF")
 
     def salvar_agua_db():
-        conn = sqlite3.connect(DB_PATH)
-        c = conn.cursor()
-        c.execute("INSERT OR REPLACE INTO agua_diaria (data, copos) VALUES (?, ?)", (data_formatada, contador_agua[0]))
-        conn.commit()
-        conn.close()
+        try:
+            conn = sqlite3.connect(DB_PATH)
+            c = conn.cursor()
+            c.execute("INSERT OR REPLACE INTO agua_diaria (data, copos) VALUES (?, ?)", (data_formatada, contador_agua[0]))
+            conn.commit()
+            conn.close()
+        except: pass
 
     def atualizar_texto_agua():
         litros = contador_agua[0] * 0.25
@@ -709,36 +729,38 @@ def main(page: ft.Page):
     lista_refeicoes_ui = ft.Column(spacing=10)
 
     def carregar_refeicoes():
-        lista_refeicoes_ui.controls.clear()
-        conn = sqlite3.connect(DB_PATH)
-        c = conn.cursor()
-        c.execute("SELECT id, tipo, descricao, foto_nome, data FROM refeicoes ORDER BY id DESC")
-        rows = c.fetchall()
-        conn.close()
+        try:
+            lista_refeicoes_ui.controls.clear()
+            conn = sqlite3.connect(DB_PATH)
+            c = conn.cursor()
+            c.execute("SELECT id, tipo, descricao, foto_nome, data FROM refeicoes ORDER BY id DESC")
+            rows = c.fetchall()
+            conn.close()
 
-        for ref_id, tip, desc, ft_nom, dt in rows:
-            def deletar_refeicao(e, id_item=ref_id):
-                conn = sqlite3.connect(DB_PATH)
-                cur = conn.cursor()
-                cur.execute("DELETE FROM refeicoes WHERE id = ?", (id_item,))
-                conn.commit()
-                conn.close()
-                carregar_refeicoes()
+            for ref_id, tip, desc, ft_nom, dt in rows:
+                def deletar_refeicao(e, id_item=ref_id):
+                    conn = sqlite3.connect(DB_PATH)
+                    cur = conn.cursor()
+                    cur.execute("DELETE FROM refeicoes WHERE id = ?", (id_item,))
+                    conn.commit()
+                    conn.close()
+                    carregar_refeicoes()
 
-            lista_refeicoes_ui.controls.append(
-                card_premium(
-                    ft.Column([
-                        ft.Row([
-                            ft.Text(tip, size=13, weight=ft.FontWeight.BOLD, color="#10B981"),
-                            ft.Text(dt or "", size=10, color="#6B7280"),
-                            ft.IconButton(icon=ft.Icons.DELETE, icon_color="#EF4444", tooltip="Apagar", on_click=deletar_refeicao)
-                        ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-                        ft.Text(f"Prato: {desc}", size=11, color="#FFFFFF"),
-                        ft.Text(f"📸 {ft_nom}", size=10, color="#3B82F6") if ft_nom else ft.Container()
-                    ]), glow_color="#10B981"
+                lista_refeicoes_ui.controls.append(
+                    card_premium(
+                        ft.Column([
+                            ft.Row([
+                                ft.Text(tip, size=13, weight=ft.FontWeight.BOLD, color="#10B981"),
+                                ft.Text(dt or "", size=10, color="#6B7280"),
+                                ft.IconButton(icon=ft.Icons.DELETE, icon_color="#EF4444", tooltip="Apagar", on_click=deletar_refeicao)
+                            ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+                            ft.Text(f"Prato: {desc}", size=11, color="#FFFFFF"),
+                            ft.Text(f"📸 {ft_nom}", size=10, color="#3B82F6") if ft_nom else ft.Container()
+                        ]), glow_color="#10B981"
+                    )
                 )
-            )
-        page.update()
+            page.update()
+        except: pass
 
     def salvar_refeicao(e):
         if dd_tipo_refeicao.value and txt_desc_refeicao.value:
@@ -787,49 +809,51 @@ def main(page: ft.Page):
     lista_compras_ui = ft.Column(spacing=5)
 
     def atualizar_financeiro():
-        lista_compras_ui.controls.clear()
-        conn = sqlite3.connect(DB_PATH)
-        c = conn.cursor()
-        c.execute("SELECT salario, reserva FROM config_financas WHERE id = 1")
-        cfg = c.fetchone()
-        salario = cfg[0] if cfg else 0.0
-        reserva = cfg[1] if cfg else 0.0
+        try:
+            lista_compras_ui.controls.clear()
+            conn = sqlite3.connect(DB_PATH)
+            c = conn.cursor()
+            c.execute("SELECT salario, reserva FROM config_financas WHERE id = 1")
+            cfg = c.fetchone()
+            salario = cfg[0] if cfg else 0.0
+            reserva = cfg[1] if cfg else 0.0
 
-        c.execute("SELECT id, descricao, valor, categoria, tipo FROM financas ORDER BY id DESC")
-        transacoes = c.fetchall()
-        conn.close()
+            c.execute("SELECT id, descricao, valor, categoria, tipo FROM financas ORDER BY id DESC")
+            transacoes = c.fetchall()
+            conn.close()
 
-        total_gastos = sum(val for _, _, val, _, t in transacoes if t == 'saida')
-        total_entradas = sum(val for _, _, val, _, t in transacoes if t == 'entrada')
-        
-        saldo_livre = (salario - reserva) + total_entradas - total_gastos
-        lbl_saldo_disponivel.value = f"R$ {saldo_livre:,.2f}"
-
-        for comp_id, desc, val, cat, tipo_t in transacoes:
-            sinal = "+" if tipo_t == "entrada" else "-"
-            cor_valor = "#10B981" if tipo_t == "entrada" else "#EF4444"
+            total_gastos = sum(val for _, _, val, _, t in transacoes if t == 'saida')
+            total_entradas = sum(val for _, _, val, _, t in transacoes if t == 'entrada')
             
-            def deletar_compra(e, id_item=comp_id):
-                conn = sqlite3.connect(DB_PATH)
-                cur = conn.cursor()
-                cur.execute("DELETE FROM financas WHERE id = ?", (id_item,))
-                conn.commit()
-                conn.close()
-                atualizar_financeiro()
+            saldo_livre = (salario - reserva) + total_entradas - total_gastos
+            lbl_saldo_disponivel.value = f"R$ {saldo_livre:,.2f}"
 
-            lista_compras_ui.controls.append(
-                card_premium(
-                    ft.Row([
-                        ft.Column([
-                            ft.Text(desc, size=12, weight=ft.FontWeight.BOLD, color="#FFFFFF"),
-                            ft.Text(cat, size=10, color="#9CA3AF")
-                        ], expand=True),
-                        ft.Text(f"{sinal} R$ {val:,.2f}", size=12, color=cor_valor, weight=ft.FontWeight.BOLD),
-                        ft.IconButton(icon=ft.Icons.DELETE, icon_color="#EF4444", tooltip="Apagar", on_click=deletar_compra)
-                    ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN), glow_color=cor_valor
+            for comp_id, desc, val, cat, tipo_t in transacoes:
+                sinal = "+" if tipo_t == "entrada" else "-"
+                cor_valor = "#10B981" if tipo_t == "entrada" else "#EF4444"
+                
+                def deletar_compra(e, id_item=comp_id):
+                    conn = sqlite3.connect(DB_PATH)
+                    cur = conn.cursor()
+                    cur.execute("DELETE FROM financas WHERE id = ?", (id_item,))
+                    conn.commit()
+                    conn.close()
+                    atualizar_financeiro()
+
+                lista_compras_ui.controls.append(
+                    card_premium(
+                        ft.Row([
+                            ft.Column([
+                                ft.Text(desc, size=12, weight=ft.FontWeight.BOLD, color="#FFFFFF"),
+                                ft.Text(cat, size=10, color="#9CA3AF")
+                            ], expand=True),
+                            ft.Text(f"{sinal} R$ {val:,.2f}", size=12, color=cor_valor, weight=ft.FontWeight.BOLD),
+                            ft.IconButton(icon=ft.Icons.DELETE, icon_color="#EF4444", tooltip="Apagar", on_click=deletar_compra)
+                        ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN), glow_color=cor_valor
+                    )
                 )
-            )
-        page.update()
+            page.update()
+        except: pass
 
     def salvar_config_salario(e):
         if txt_salario.value:
@@ -918,36 +942,38 @@ def main(page: ft.Page):
     lista_diario_ui = ft.Column(spacing=10)
 
     def carregar_diario():
-        lista_diario_ui.controls.clear()
-        conn = sqlite3.connect(DB_PATH)
-        c = conn.cursor()
-        c.execute("SELECT id, vitoria, licao, desabafo, data FROM diario ORDER BY id DESC")
-        rows = c.fetchall()
-        conn.close()
+        try:
+            lista_diario_ui.controls.clear()
+            conn = sqlite3.connect(DB_PATH)
+            c = conn.cursor()
+            c.execute("SELECT id, vitoria, licao, desabafo, data FROM diario ORDER BY id DESC")
+            rows = c.fetchall()
+            conn.close()
 
-        for dia_id, vit, lic, des, dt in rows:
-            def deletar_diario(e, id_item=dia_id):
-                conn = sqlite3.connect(DB_PATH)
-                cur = conn.cursor()
-                cur.execute("DELETE FROM diario WHERE id = ?", (id_item,))
-                conn.commit()
-                conn.close()
-                carregar_diario()
+            for dia_id, vit, lic, des, dt in rows:
+                def deletar_diario(e, id_item=dia_id):
+                    conn = sqlite3.connect(DB_PATH)
+                    cur = conn.cursor()
+                    cur.execute("DELETE FROM diario WHERE id = ?", (id_item,))
+                    conn.commit()
+                    conn.close()
+                    carregar_diario()
 
-            lista_diario_ui.controls.append(
-                card_premium(
-                    ft.Column([
-                        ft.Row([
-                            ft.Text(f"Registro em: {dt or ''}", size=12, weight=ft.FontWeight.BOLD, color="#EC4899"),
-                            ft.IconButton(icon=ft.Icons.DELETE, icon_color="#EF4444", tooltip="Apagar", on_click=deletar_diario)
-                        ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-                        ft.Text(f"🏆 Vitória: {vit}", size=11, color="#FFFFFF") if vit else ft.Container(),
-                        ft.Text(f"💡 Lição: {lic}", size=11, color="#00F2FE") if lic else ft.Container(),
-                        ft.Text(f"💬 Desabafo: {des}", size=11, color="#9CA3AF") if des else ft.Container()
-                    ]), glow_color="#EC4899"
+                lista_diario_ui.controls.append(
+                    card_premium(
+                        ft.Column([
+                            ft.Row([
+                                ft.Text(f"Registro em: {dt or ''}", size=12, weight=ft.FontWeight.BOLD, color="#EC4899"),
+                                ft.IconButton(icon=ft.Icons.DELETE, icon_color="#EF4444", tooltip="Apagar", on_click=deletar_diario)
+                            ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+                            ft.Text(f"🏆 Vitória: {vit}", size=11, color="#FFFFFF") if vit else ft.Container(),
+                            ft.Text(f"💡 Lição: {lic}", size=11, color="#00F2FE") if lic else ft.Container(),
+                            ft.Text(f"💬 Desabafo: {des}", size=11, color="#9CA3AF") if des else ft.Container()
+                        ]), glow_color="#EC4899"
+                    )
                 )
-            )
-        page.update()
+            page.update()
+        except: pass
 
     def salvar_diario(e):
         if dia_vitoria.value or dia_licao.value or dia_desabafo.value:
@@ -1035,14 +1061,16 @@ def main(page: ft.Page):
     dd_treino_ativo.on_change = atualizar_overview_treino
 
     def carregar_treinos_master():
-        dd_treino_ativo.options.clear()
-        conn = sqlite3.connect(DB_PATH)
-        c = conn.cursor()
-        c.execute("SELECT id, nome_treino FROM treinos_master")
-        for id_t, nm in c.fetchall():
-            dd_treino_ativo.options.append(ft.dropdown.Option(key=str(id_t), text=nm))
-        conn.close()
-        page.update()
+        try:
+            dd_treino_ativo.options.clear()
+            conn = sqlite3.connect(DB_PATH)
+            c = conn.cursor()
+            c.execute("SELECT id, nome_treino FROM treinos_master")
+            for id_t, nm in c.fetchall():
+                dd_treino_ativo.options.append(ft.dropdown.Option(key=str(id_t), text=nm))
+            conn.close()
+            page.update()
+        except: pass
 
     def salvar_treino_master(e):
         if txt_nome_treino.value and txt_lista_exercicios.value:
@@ -1108,35 +1136,37 @@ def main(page: ft.Page):
     lista_historico_treinos_ui = ft.Column(spacing=10)
 
     def carregar_historico_treinos():
-        lista_historico_treinos_ui.controls.clear()
-        conn = sqlite3.connect(DB_PATH)
-        c = conn.cursor()
-        c.execute("SELECT id, nome_treino, duracao_min, detalhes_cargas, data FROM historico_treinos ORDER BY id DESC")
-        rows = c.fetchall()
-        conn.close()
+        try:
+            lista_historico_treinos_ui.controls.clear()
+            conn = sqlite3.connect(DB_PATH)
+            c = conn.cursor()
+            c.execute("SELECT id, nome_treino, duracao_min, detalhes_cargas, data FROM historico_treinos ORDER BY id DESC")
+            rows = c.fetchall()
+            conn.close()
 
-        for t_id, nm, dur, det, dt in rows:
-            def deletar_treino(e, id_item=t_id):
-                conn = sqlite3.connect(DB_PATH)
-                cur = conn.cursor()
-                cur.execute("DELETE FROM historico_treinos WHERE id = ?", (id_item,))
-                conn.commit()
-                conn.close()
-                carregar_historico_treinos()
+            for t_id, nm, dur, det, dt in rows:
+                def deletar_treino(e, id_item=t_id):
+                    conn = sqlite3.connect(DB_PATH)
+                    cur = conn.cursor()
+                    cur.execute("DELETE FROM historico_treinos WHERE id = ?", (id_item,))
+                    conn.commit()
+                    conn.close()
+                    carregar_historico_treinos()
 
-            lista_historico_treinos_ui.controls.append(
-                card_premium(
-                    ft.Column([
-                        ft.Row([
-                            ft.Text(f"🏋️ {nm}", size=13, weight=ft.FontWeight.BOLD, color="#FF0055"),
-                            ft.Text(f"⏱️ {dur} • {dt}", size=10, color="#6B7280"),
-                            ft.IconButton(icon=ft.Icons.DELETE, icon_color="#EF4444", tooltip="Apagar", on_click=deletar_treino)
-                        ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-                        ft.Text(det, size=11, color="#FFFFFF")
-                    ]), glow_color="#FF0055"
+                lista_historico_treinos_ui.controls.append(
+                    card_premium(
+                        ft.Column([
+                            ft.Row([
+                                ft.Text(f"🏋️ {nm}", size=13, weight=ft.FontWeight.BOLD, color="#FF0055"),
+                                ft.Text(f"⏱️ {dur} • {dt}", size=10, color="#6B7280"),
+                                ft.IconButton(icon=ft.Icons.DELETE, icon_color="#EF4444", tooltip="Apagar", on_click=deletar_treino)
+                            ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+                            ft.Text(det, size=11, color="#FFFFFF")
+                        ]), glow_color="#FF0055"
+                    )
                 )
-            )
-        page.update()
+            page.update()
+        except: pass
 
     view_treino = ft.Container(
         content=ft.Column([
@@ -1169,142 +1199,118 @@ def main(page: ft.Page):
     conteudo_resumo = ft.Column(spacing=10)
 
     def carregar_resumo_dia(e=None):
-        dt_busca = input_data_pesquisa.value.strip() or data_formatada
-        conteudo_resumo.controls.clear()
-
         try:
-            partes = dt_busca.split("/")
-            iso_busca = f"{partes[2]}-{partes[1]}-{partes[0]}"
-        except:
-            iso_busca = data_hoje_iso
+            dt_busca = input_data_pesquisa.value.strip() or data_formatada
+            conteudo_resumo.controls.clear()
 
-        conn = sqlite3.connect(DB_PATH)
-        c = conn.cursor()
+            try:
+                partes = dt_busca.split("/")
+                iso_busca = f"{partes[2]}-{partes[1]}-{partes[0]}"
+            except:
+                iso_busca = data_hoje_iso
 
-        c.execute("SELECT rotina, tipo_excecao, horario_real FROM excecoes WHERE data = ?", (dt_busca,))
-        excecoes_do_dia = {r[0]: (r[1], r[2]) for r in c.fetchall()}
+            conn = sqlite3.connect(DB_PATH)
+            c = conn.cursor()
 
-        c.execute("SELECT id, atividade, horario FROM rotina_master WHERE dia_semana = ?", (dia_semana_hoje,))
-        todas_rotinas = c.fetchall()
-        total_rotinas = len(todas_rotinas)
-        
-        rot_ok, rot_atraso, rot_pend = [], [], []
+            c.execute("SELECT rotina, tipo_excecao, horario_real FROM excecoes WHERE data = ?", (dt_busca,))
+            excecoes_do_dia = {r[0]: (r[1], r[2]) for r in c.fetchall()}
 
-        for rot_id, ativ, hor in todas_rotinas:
-            c.execute("SELECT cumprido FROM execucao_rotina WHERE rotina_id = ? AND data = ?", (rot_id, iso_busca))
-            res = c.fetchone()
-            foi_cumprido = bool(res[0]) if res else False
-            exc_reg = excecoes_do_dia.get(ativ)
+            c.execute("SELECT id, atividade, horario FROM rotina_master WHERE dia_semana = ?", (dia_semana_hoje,))
+            todas_rotinas = c.fetchall()
+            total_rotinas = len(todas_rotinas)
+            
+            rot_ok, rot_atraso, rot_pend = [], [], []
 
-            if foi_cumprido:
-                if exc_reg and "Atraso" in str(exc_reg[0]):
-                    rot_atraso.append(f"🟡 {ativ} (Prev: {hor} | Real: {exc_reg[1] or '?'})")
+            for rot_id, ativ, hor in todas_rotinas:
+                c.execute("SELECT cumprido FROM execucao_rotina WHERE rotina_id = ? AND data = ?", (rot_id, iso_busca))
+                res = c.fetchone()
+                foi_cumprido = bool(res[0]) if res else False
+                exc_reg = excecoes_do_dia.get(ativ)
+
+                if foi_cumprido:
+                    if exc_reg and "Atraso" in str(exc_reg[0]):
+                        rot_atraso.append(f"🟡 {ativ} (Prev: {hor} | Real: {exc_reg[1] or '?'})")
+                    else:
+                        rot_ok.append(f"🟢 {ativ} ({hor})")
                 else:
-                    rot_ok.append(f"🟢 {ativ} ({hor})")
-            else:
-                rot_pend.append(f"🔴 {ativ} ({hor})")
+                    rot_pend.append(f"🔴 {ativ} ({hor})")
 
-        cump_count = len(rot_ok) + len(rot_atraso)
-        pct_rot = int((cump_count / total_rotinas * 100)) if total_rotinas > 0 else 0
+            cump_count = len(rot_ok) + len(rot_atraso)
+            pct_rot = int((cump_count / total_rotinas * 100)) if total_rotinas > 0 else 0
 
-        grafico_rotina = ft.Container()
-        if total_rotinas > 0:
-            grafico_rotina = ft.Container(
-                content=ft.PieChart(
-                    sections=[
-                        ft.PieChartSection(value=len(rot_ok), color="#10B981", title=f"{len(rot_ok)}", radius=25, title_style=ft.TextStyle(size=10, color=ft.Colors.WHITE)),
-                        ft.PieChartSection(value=len(rot_atraso), color="#F59E0B", title=f"{len(rot_atraso)}", radius=25, title_style=ft.TextStyle(size=10, color=ft.Colors.WHITE)),
-                        ft.PieChartSection(value=len(rot_pend), color="#EF4444", title=f"{len(rot_pend)}", radius=25, title_style=ft.TextStyle(size=10, color=ft.Colors.WHITE)),
-                    ],
-                    sections_space=2, center_space_radius=30, expand=True
-                ), height=100
-            )
-
-        c.execute("SELECT descricao, valor, categoria, tipo FROM financas WHERE data = ?", (dt_busca,))
-        financas_dia = c.fetchall()
-        
-        gasto_dia = sum(val for _, val, _, t in financas_dia if t == 'saida')
-        entrada_dia = sum(val for _, val, _, t in financas_dia if t == 'entrada')
-        
-        gastos_cat = {}
-        for _, val, cat, t in financas_dia:
-            if t == 'saida':
-                gastos_cat[cat] = gastos_cat.get(cat, 0) + val
-        
-        cores_fin = ["#3B82F6", "#8B5CF6", "#EC4899", "#F59E0B", "#10B981", "#EF4444"]
-        sections_fin = [ft.PieChartSection(value=v, color=cores_fin[i%6], title=f"R${v:.0f}", radius=25, title_style=ft.TextStyle(size=10, color=ft.Colors.WHITE)) for i, (k, v) in enumerate(gastos_cat.items())]
-        
-        grafico_financas = ft.Container()
-        if sections_fin:
-            grafico_financas = ft.Container(content=ft.PieChart(sections=sections_fin, sections_space=2, center_space_radius=30, expand=True), height=100)
-
-        c.execute("SELECT nome_treino, duracao_min, detalhes_cargas FROM historico_treinos WHERE data = ?", (dt_busca,))
-        treinos_dia = c.fetchall()
-        c.execute("SELECT tipo, descricao FROM refeicoes WHERE data = ?", (dt_busca,))
-        refeicoes_dia = c.fetchall()
-        c.execute("SELECT vitoria, desabafo FROM diario WHERE data = ?", (dt_busca,))
-        diario_dia = c.fetchone()
-        
-        c.execute("SELECT copos FROM agua_diaria WHERE data = ?", (dt_busca,))
-        res_agua_dia = c.fetchone()
-        copos_dia_resumo = res_agua_dia[0] if res_agua_dia else 0
-        litros_dia = copos_dia_resumo * 0.25
-        
-        if litros_dia >= 3.0:
-            txt_agua = f"💧 Água: {litros_dia:.2f}L / 3.0L (✅ Meta Atingida!)"
-            cor_agua = "#10B981"
-        else:
-            txt_agua = f"💧 Água: {litros_dia:.2f}L / 3.0L (🔴 Faltou água!)"
-            cor_agua = "#EF4444"
-
-        conn.close()
-
-        conteudo_resumo.controls.append(
-            card_premium(
-                ft.Column([
-                    ft.Row([ft.Text("📋 ROTINA & CONSISTÊNCIA", size=12, weight=ft.FontWeight.BOLD, color="#00F2FE"), ft.Text(f"{pct_rot}%", size=14, weight=ft.FontWeight.BOLD, color="#10B981" if pct_rot>=70 else "#EF4444")], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-                    grafico_rotina,
-                    ft.Text("\n".join(rot_ok) if rot_ok else "", size=11, color="#10B981"),
-                    ft.Text("\n".join(rot_atraso) if rot_atraso else "", size=11, color="#F59E0B"),
-                    ft.Text("\n".join(rot_pend) if rot_pend else "", size=11, color="#EF4444"),
-                ]), glow_color="#00F2FE"
-            )
-        )
-
-        txt_compras = "\n".join([f"• {desc}: {'+' if t=='entrada' else '-'} R$ {val:,.2f} ({cat})" for desc, val, cat, t in financas_dia]) if financas_dia else "Nenhuma movimentação financeira hoje."
-        conteudo_resumo.controls.append(
-            card_premium(
-                ft.Column([
-                    ft.Row([ft.Text("💰 MOVIMENTAÇÃO FINANCEIRA", size=12, weight=ft.FontWeight.BOLD, color="#8B5CF6"), ft.Text(f"Gastos: R$ {gasto_dia:,.2f} | Entradas: R$ {entrada_dia:,.2f}", size=11, weight=ft.FontWeight.BOLD, color="#D1D5DB")], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-                    grafico_financas,
-                    ft.Text(txt_compras, size=11, color="#FFFFFF")
-                ]), glow_color="#8B5CF6"
-            )
-        )
-
-        conteudo_resumo.controls.append(
-            card_premium(
-                ft.Column([
-                    ft.Text("🏋️ TREINOS, DIETA & HIDRATAÇÃO", size=12, weight=ft.FontWeight.BOLD, color="#10B981"),
-                    ft.Text(txt_agua, size=11, weight=ft.FontWeight.BOLD, color=cor_agua),
-                    ft.Text("\n".join([f"🏋️ {n} ({d})\n   {c}" for n, d, c in treinos_dia]) if treinos_dia else "Sem treino.", size=11, color="#FFFFFF"),
-                    ft.Text("\n".join([f"🥗 {t}: {d}" for t, d in refeicoes_dia]) if refeicoes_dia else "Sem refeições.", size=11, color="#D1D5DB")
-                ]), glow_color="#10B981"
-            )
-        )
-
-        if diario_dia:
             conteudo_resumo.controls.append(
                 card_premium(
                     ft.Column([
-                        ft.Text("🧠 MINDSET", size=12, weight=ft.FontWeight.BOLD, color="#EC4899"),
-                        ft.Text(f"🏆 Vitória: {diario_dia[0] or 'N/A'}", size=11, color="#FFFFFF"),
-                        ft.Text(f"💬 Desabafo: {diario_dia[1] or 'N/A'}", size=11, color="#9CA3AF")
-                    ]), glow_color="#EC4899"
+                        ft.Row([ft.Text("📋 ROTINA & CONSISTÊNCIA", size=12, weight=ft.FontWeight.BOLD, color="#00F2FE"), ft.Text(f"{pct_rot}%", size=14, weight=ft.FontWeight.BOLD, color="#10B981" if pct_rot>=70 else "#EF4444")], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+                        ft.Text("\n".join(rot_ok) if rot_ok else "", size=11, color="#10B981"),
+                        ft.Text("\n".join(rot_atraso) if rot_atraso else "", size=11, color="#F59E0B"),
+                        ft.Text("\n".join(rot_pend) if rot_pend else "", size=11, color="#EF4444"),
+                    ]), glow_color="#00F2FE"
                 )
             )
 
-        page.update()
+            c.execute("SELECT descricao, valor, categoria, tipo FROM financas WHERE data = ?", (dt_busca,))
+            financas_dia = c.fetchall()
+            
+            gasto_dia = sum(val for _, val, _, t in financas_dia if t == 'saida')
+            entrada_dia = sum(val for _, val, _, t in financas_dia if t == 'entrada')
+            
+            txt_compras = "\n".join([f"• {desc}: {'+' if t=='entrada' else '-'} R$ {val:,.2f} ({cat})" for desc, val, cat, t in financas_dia]) if financas_dia else "Nenhuma movimentação financeira hoje."
+            
+            conteudo_resumo.controls.append(
+                card_premium(
+                    ft.Column([
+                        ft.Row([ft.Text("💰 MOVIMENTAÇÃO FINANCEIRA", size=12, weight=ft.FontWeight.BOLD, color="#8B5CF6"), ft.Text(f"Gastos: R$ {gasto_dia:,.2f} | Entradas: R$ {entrada_dia:,.2f}", size=11, weight=ft.FontWeight.BOLD, color="#D1D5DB")], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+                        ft.Text(txt_compras, size=11, color="#FFFFFF")
+                    ]), glow_color="#8B5CF6"
+                )
+            )
+
+            c.execute("SELECT nome_treino, duracao_min, detalhes_cargas FROM historico_treinos WHERE data = ?", (dt_busca,))
+            treinos_dia = c.fetchall()
+            c.execute("SELECT tipo, descricao FROM refeicoes WHERE data = ?", (dt_busca,))
+            refeicoes_dia = c.fetchall()
+            c.execute("SELECT vitoria, desabafo FROM diario WHERE data = ?", (dt_busca,))
+            diario_dia = c.fetchone()
+            
+            c.execute("SELECT copos FROM agua_diaria WHERE data = ?", (dt_busca,))
+            res_agua_dia = c.fetchone()
+            copos_dia_resumo = res_agua_dia[0] if res_agua_dia else 0
+            litros_dia = copos_dia_resumo * 0.25
+            
+            if litros_dia >= 3.0:
+                txt_agua = f"💧 Água: {litros_dia:.2f}L / 3.0L (✅ Meta Atingida!)"
+                cor_agua = "#10B981"
+            else:
+                txt_agua = f"💧 Água: {litros_dia:.2f}L / 3.0L (🔴 Faltou água!)"
+                cor_agua = "#EF4444"
+
+            conn.close()
+
+            conteudo_resumo.controls.append(
+                card_premium(
+                    ft.Column([
+                        ft.Text("🏋️ TREINOS, DIETA & HIDRATAÇÃO", size=12, weight=ft.FontWeight.BOLD, color="#10B981"),
+                        ft.Text(txt_agua, size=11, weight=ft.FontWeight.BOLD, color=cor_agua),
+                        ft.Text("\n".join([f"🏋️ {n} ({d})\n   {c}" for n, d, c in treinos_dia]) if treinos_dia else "Sem treino.", size=11, color="#FFFFFF"),
+                        ft.Text("\n".join([f"🥗 {t}: {d}" for t, d in refeicoes_dia]) if refeicoes_dia else "Sem refeições.", size=11, color="#D1D5DB")
+                    ]), glow_color="#10B981"
+                )
+            )
+
+            if diario_dia:
+                conteudo_resumo.controls.append(
+                    card_premium(
+                        ft.Column([
+                            ft.Text("🧠 MINDSET", size=12, weight=ft.FontWeight.BOLD, color="#EC4899"),
+                            ft.Text(f"🏆 Vitória: {diario_dia[0] or 'N/A'}", size=11, color="#FFFFFF"),
+                            ft.Text(f"💬 Desabafo: {diario_dia[1] or 'N/A'}", size=11, color="#9CA3AF")
+                        ]), glow_color="#EC4899"
+                    )
+                )
+
+            page.update()
+        except: pass
 
     view_analytics = ft.Container(
         content=ft.Column([
@@ -1345,16 +1351,12 @@ def main(page: ft.Page):
 
     page.add(ft.Column([painel_gamificacao, body, navegacao], expand=True, spacing=0))
 
-    atualizar_header_xp()
-    carregar_rotina_do_dia()
-    carregar_gaps()
-    carregar_excecoes()
-    carregar_refeicoes()
-    atualizar_financeiro()
-    carregar_diario()
-    carregar_treinos_master()
-    carregar_historico_treinos()
-    carregar_resumo_dia()
+    # Inicializações seguras
+    try: atualizar_header_xp()
+    except: pass
+    
+    try: carregar_rotina_do_dia()
+    except: pass
 
 if __name__ == "__main__":
     ft.app(target=main)
